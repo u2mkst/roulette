@@ -24,10 +24,10 @@
   <meta name="msapplication-TileImage" content="assets/ms-icon-144x144.png">
   <meta name="theme-color" content="#ffffff">
 
-  <meta name="description" content="구슬을 굴려 당첨자를 뽑는 추첨기">
+  <meta name="description" content="KST Roulette">
   <meta property="og:url" content="/">
   <meta property="og:title" content="KST Roulette">
-  <meta property="og:description" content="KST Roulette - 랜덤 추첨기">
+  <meta property="og:description" content="KST Roulette">
   <meta property="og:site_name" content="KST Roulette">
   <meta property="og:type" content="website">
 
@@ -60,7 +60,7 @@ function getNames() {
     const names = getNames();
     window.roulette.setMarbles(names);
     ready = names.length > 0;
-    localStorage.setItem('mbr_names', names.join(','));
+    localStorage.setItem('kst_names', names.join(','));
     applyWinnerSetting();
   }
 
@@ -140,7 +140,7 @@ function getNames() {
     if (namesFromUrl) {
       document.querySelector('#in_names').value = namesFromUrl.replace(/,/g, '\n');
     } else {
-      const savedNames = localStorage.getItem('mbr_names');
+      const savedNames = localStorage.getItem('kst_names');
       if (savedNames) {
         document.querySelector('#in_names').value = savedNames;
       }
@@ -269,7 +269,9 @@ function getNames() {
 
   }
 </script>
-<h1 class="sr-only">KST Roulette - 랜덤 추첨기</h1>
+<h1 class="sr-only">KST Roulette</h1>
+<div id="adSlot" class="ad-slot" hidden></div>
+<div class="brand">KST Roulette</div>
 <div id="settings" class="settings">
   <div class="right">
     <button id="btnToggleSettings" class="btn-toggle-settings">
@@ -331,8 +333,7 @@ function getNames() {
   </div>
   <div class="left">
     <h3 data-trans>Enter names below</h3>
-    <textarea id="in_names" placeholder="Input names separated by commas or line feed here" data-trans="placeholder">수박*2,키위*2,귤*2</textarea>
-    <div id="kstItems"><div class="kst-add-row"><input id="kstNewItem" type="text" placeholder="항목 추가"><button id="kstAddItem" type="button">추가</button></div><div id="kstItemList"></div></div>
+    <textarea id="in_names" placeholder="Input names separated by commas or line feed here" data-trans="placeholder">한이,바가,라면,진상,가오충,제육,지후,래윤,테무</textarea>
     <div class="actions">
       <div class="sep"></div>
       <button id="btnShuffle">
@@ -346,21 +347,6 @@ function getNames() {
     </div>
   </div>
 </div>
-<div class="copyright">KST Roulette · 랜덤 추첨기</div>
 
-<div id="kstResult" hidden><div class="kst-result-card"><h2>추첨 결과</h2><ol id="kstResultList"></ol><button id="kstCloseResult" type="button">확인</button></div></div>
-<button id="kstFullscreen" type="button">전체화면</button>
-<script>
-(function(){
-const input=document.querySelector('#in_names'),list=document.querySelector('#kstItemList'),newItem=document.querySelector('#kstNewItem'),add=document.querySelector('#kstAddItem'),result=document.querySelector('#kstResult'),resultList=document.querySelector('#kstResultList');
-const items=()=>input.value.split(/[,\r\n]+/).map(v=>v.trim()).filter(Boolean);
-const render=()=>{list.replaceChildren();items().forEach((name,i)=>{const row=document.createElement('span');row.textContent=name;const b=document.createElement('button');b.type='button';b.textContent='×';b.onclick=()=>{const a=items();a.splice(i,1);input.value=a.join('\n');input.dispatchEvent(new Event('input',{bubbles:true}));render()};row.appendChild(b);list.appendChild(row)})};
-add.onclick=()=>{const v=newItem.value.trim();if(!v)return;input.value=[...items(),v].join('\n');newItem.value='';input.dispatchEvent(new Event('input',{bubbles:true}));render()};
-newItem.onkeydown=e=>{if(e.key==='Enter')add.click()};input.addEventListener('input',render);render();
-document.querySelector('#kstCloseResult').onclick=()=>result.hidden=true;
-document.querySelector('#kstFullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch(e){}};
-const wait=()=>{if(window.roulette){window.roulette.addEventListener('goal',e=>{const w=e.detail?.winners||[];resultList.replaceChildren();w.forEach((n,i)=>{const li=document.createElement('li');li.textContent=(w.length>1?(i+1)+'위 · ':'')+n;resultList.appendChild(li)});if(w.length)result.hidden=false})}else setTimeout(wait,100)};wait();
-})();
-</script>
 </body>
 </html>

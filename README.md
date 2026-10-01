@@ -4,9 +4,7 @@ A customized fork of the original marble roulette project.
 
 ## Features
 - Original roulette visual style
-- Clear result display
-- Fullscreen mode
-- Add and remove roulette entries
+- Custom ads: edit `src/adConfig.ts`
 
 ## Development
 ```sh
