@@ -172,13 +172,6 @@ function getNames() {
     requestAnimationFrame(step);
   }
 
-  function buildShareText() {
-    const lines = ['🏆 KST Roulette 결과'];
-    lastRanking.slice(0, 10).forEach((r) => lines.push(`${r.rank}위  ${r.name}${r.winning ? ' ☆' : ''}`));
-    if (lastRanking.length > 10) lines.push(`… 외 ${lastRanking.length - 10}명`);
-    return lines.join('\n');
-  }
-
   // 카카오 JavaScript 키는 공개용 키다(허용 도메인은 카카오 개발자 콘솔에서 제한한다)
   const KAKAO_JS_KEY = 'cb544b3826c4551884efaf636f5a7fff';
   let kakaoLoading = null;
@@ -202,28 +195,52 @@ function getNames() {
     return kakaoLoading;
   }
 
+  // 전체 순위를 짧은 링크로 저장한다. 카톡 메시지는 글자 수 제한이 있어 결과 전체를 링크로 보여준다
+  async function saveRanking() {
+    const id = Array.from(crypto.getRandomValues(new Uint8Array(10)), (b) => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
+    const ranking = lastRanking.slice(0, 300).map((r) => ({ name: String(r.name).slice(0, 40), hue: Math.round(r.hue), rank: r.rank, winning: !!r.winning }));
+    const res = await fetch('https://axtibtdqnwjezyqiqeff.supabase.co/rest/v1/results', {
+      method: 'POST',
+      headers: { apikey: 'sb_publishable_AMAgYO0ye6ykCsJVdzV1jQ_WJXvN9vq', 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ id, ranking }),
+    });
+    if (!res.ok) throw new Error('save failed ' + res.status);
+    return location.origin + '/result.html?id=' + id;
+  }
+
   async function shareResult() {
     const label = document.querySelector('#shareLabel');
-    const text = buildShareText();
-    const url = location.origin + '/';
-    const done = (msg) => { label.textContent = msg; setTimeout(() => { label.textContent = '카카오톡으로 결과 공유'; }, 2500); };
-    // 1순위: 카카오톡 공식 공유(친구/채팅방 선택 창). 카카오 텍스트 템플릿은 200자까지라 상위 5명만 보낸다
+    const idle = '카카오톡으로 결과 공유';
+    const done = (msg) => { label.textContent = msg; setTimeout(() => { label.textContent = idle; }, 2500); };
+    label.textContent = '링크 만드는 중…';
+
+    let url = location.origin + '/';
+    let linked = false;
+    try { url = await saveRanking(); linked = true; } catch (e) { console.warn('[share] 결과 링크 저장 실패', e); }
+    label.textContent = idle;
+
+    const lines = ['🏆 KST Roulette 결과'];
+    lastRanking.slice(0, 5).forEach((r) => lines.push(`${r.rank}위  ${r.name}${r.winning ? ' ☆' : ''}`));
+    if (lastRanking.length > 5) lines.push(linked ? `… 전체 ${lastRanking.length}명 순위는 링크에서 확인` : `… 외 ${lastRanking.length - 5}명`);
+    const shortText = lines.join('\n');
+    // 링크를 만들지 못했을 때를 위해 복사용 텍스트에는 전체 순위를 담는다
+    const fullText = ['🏆 KST Roulette 결과', ...lastRanking.slice(0, 40).map((r) => `${r.rank}위  ${r.name}${r.winning ? ' ☆' : ''}`)].join('\n');
+
+    // 1순위: 카카오톡 공식 공유(친구/채팅방 선택 창). 카카오 텍스트 템플릿은 200자까지라 상위 5명 + 전체 순위 링크를 보낸다
     try {
       const Kakao = await loadKakao();
-      const short = ['🏆 KST Roulette 결과'];
-      lastRanking.slice(0, 5).forEach((r) => short.push(`${r.rank}위  ${r.name}${r.winning ? ' ☆' : ''}`));
-      if (lastRanking.length > 5) short.push(`… 외 ${lastRanking.length - 5}명`);
       Kakao.Share.sendDefault({
         objectType: 'text',
-        text: short.join('\n'),
+        text: shortText,
         link: { mobileWebUrl: url, webUrl: url },
-        buttonTitle: '나도 돌려보기',
+        buttonTitle: linked ? '전체 순위 보기' : '나도 돌려보기',
       });
       return;
     } catch (e) {
       console.warn('[share] 카카오 공유를 쓸 수 없어 기본 공유로 전환합니다', e);
     }
-    // 2순위: 모바일 공유 시트(카카오톡 포함). 데스크톱 등 미지원 환경: 복사해서 붙여넣게 한다
+    // 2순위: 모바일 공유 시트(카카오톡 포함). 3순위: 복사해서 붙여넣기
+    const text = linked ? shortText : fullText;
     if (navigator.share) {
       try { await navigator.share({ title: 'KST Roulette', text, url }); return; }
       catch (e) { if (e && e.name === 'AbortError') return; }

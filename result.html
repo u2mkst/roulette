@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>KST Roulette 결과</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-dark-32x32.png" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="KST Roulette 결과">
+<meta property="og:description" content="전체 순위를 확인해 보세요">
+<meta property="og:site_name" content="KST Roulette">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:#0b0c10;color:#f1f3f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',Roboto,sans-serif}
+  .card{width:min(440px,100%);background:#14161b;border:1px solid #2c303a;border-radius:18px;padding:24px 20px 18px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  .head{text-align:center}.trophy{font-size:36px;line-height:1}.label{margin-top:4px;font-size:13px;letter-spacing:.2em;color:#9aa3b2}
+  .winner{font-size:clamp(30px,9vw,44px);font-weight:800;line-height:1.2;word-break:keep-all}
+  h2{margin:16px 0 8px;padding-top:12px;border-top:1px solid #2c303a;font-size:14px;font-weight:600;color:#9aa3b2;text-align:center}
+  ol{list-style:none;margin:0;padding:0}
+  li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:17px}
+  li:nth-child(odd){background:rgba(255,255,255,.04)}
+  li.win{background:rgba(255,215,0,.14);box-shadow:inset 3px 0 0 rgba(255,215,0,.85)}
+  .no{width:30px;text-align:right;color:#8b93a3;font-variant-numeric:tabular-nums}
+  .nm{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tag{font-size:12px;color:#ffd84d}
+  .again{display:block;margin-top:16px;padding:13px;border-radius:10px;background:#fee500;color:#191919;text-align:center;font-weight:700;font-size:16px;text-decoration:none}
+  .foot{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid #2c303a}
+  .mark{width:26px;height:26px;background:#fff;-webkit-mask:url(assets/images/kst-mark.png) center/contain no-repeat;mask:url(assets/images/kst-mark.png) center/contain no-repeat}
+  .brand{font-size:20px;font-weight:800;letter-spacing:.08em}
+  .msg{text-align:center;color:#9aa3b2;padding:30px 0}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div id="msg" class="msg">결과를 불러오는 중…</div>
+  <div id="content" hidden>
+    <div class="head"><div class="trophy">🏆</div><div class="label">1위</div><div id="winner" class="winner"></div></div>
+    <h2>최종 순위</h2>
+    <ol id="list"></ol>
+    <a class="again" href="/">나도 돌려보기</a>
+  </div>
+  <div class="foot"><span class="mark" aria-hidden="true"></span><span class="brand">KST Roulette</span></div>
+</div>
+<script>
+(async () => {
+  const id = new URLSearchParams(location.search).get('id') || '';
+  const msg = document.getElementById('msg');
+  if (!/^[a-z0-9]{8,12}$/.test(id)) { msg.textContent = '잘못된 주소입니다.'; return; }
+  try {
+    const res = await fetch('https://axtibtdqnwjezyqiqeff.supabase.co/rest/v1/results?select=ranking&id=eq.' + id, {
+      headers: { apikey: 'sb_publishable_AMAgYO0ye6ykCsJVdzV1jQ_WJXvN9vq' },
+    });
+    const rows = res.ok ? await res.json() : [];
+    if (!rows.length) { msg.textContent = '결과를 찾을 수 없습니다.'; return; }
+    const ranking = rows[0].ranking;
+    const w = document.getElementById('winner');
+    w.textContent = ranking[0].name;
+    w.style.color = `hsl(${Number(ranking[0].hue) || 0} 100% 72%)`;
+    const list = document.getElementById('list');
+    ranking.forEach((r) => {
+      const li = document.createElement('li');
+      if (r.winning) li.className = 'win';
+      const no = document.createElement('span'); no.className = 'no'; no.textContent = r.rank;
+      const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = r.name;
+      nm.style.color = `hsl(${Number(r.hue) || 0} 100% 72%)`;
+      const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = r.winning ? '당첨' : '';
+      li.append(no, nm, tag); list.append(li);
+    });
+    msg.hidden = true; document.getElementById('content').hidden = false;
+  } catch (e) { msg.textContent = '결과를 불러오지 못했습니다.'; }
+})();
+</script>
+</body>
+</html>
