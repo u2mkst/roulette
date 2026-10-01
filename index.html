@@ -114,6 +114,47 @@ function getNames() {
     document.querySelector('.row-range').classList.toggle('active', winnerType === 'multi');
   }
 
+  // 남은 구슬이 모두 골인할 때까지(최대 20초) 기다렸다가 최종 순위표를 띄운다
+  let finalTimer = null;
+  function waitAndShowFinalRanking() {
+    clearTimeout(finalTimer);
+    const startedAt = Date.now();
+    const tick = () => {
+      const done = window.roulette.getRemainingCount() === 0 || Date.now() - startedAt > 20000;
+      if (done) {
+        finalTimer = setTimeout(() => showFinalRanking(window.roulette.getRanking()), 1200);
+      } else {
+        finalTimer = setTimeout(tick, 400);
+      }
+    };
+    finalTimer = setTimeout(tick, 2000);
+  }
+
+  function showFinalRanking(ranking) {
+    if (!ranking || !ranking.length) return;
+    const box = document.querySelector('#finalRanking');
+    const list = document.querySelector('#finalList');
+    list.replaceChildren();
+    const top = ranking[0];
+    document.querySelector('#finalWinner').textContent = top.name;
+    document.querySelector('#finalWinner').style.color = `hsl(${top.hue} 100% 72%)`;
+    ranking.forEach((r) => {
+      const li = document.createElement('li');
+      if (r.winning) li.classList.add('winning');
+      if (!r.finished) li.classList.add('running');
+      const no = document.createElement('span'); no.className = 'no'; no.textContent = r.rank;
+      const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = r.name;
+      nm.style.color = `hsl(${r.hue} 100% 72%)`;
+      const tag = document.createElement('span'); tag.className = 'tag';
+      tag.textContent = r.winning ? '당첨' : (r.finished ? '' : '진행 중');
+      li.append(no, nm, tag);
+      list.append(li);
+    });
+    document.querySelector('#finalNote').hidden = ranking.every((r) => r.finished);
+    box.hidden = false;
+    list.scrollTop = 0;
+  }
+
   function selectWinnerType(type, edited) {
     winnerType = type;
     applyWinnerSetting(edited);
@@ -187,6 +228,7 @@ function getNames() {
 
     document.querySelector('#btnStart').addEventListener('click', () => {
       if (!ready) return;
+      clearTimeout(finalTimer);
       const names = getNames();
       const marbles = names.map(n => {
         const p = parseName(n);
@@ -222,8 +264,9 @@ function getNames() {
     document.querySelector('#in_rangeStart').addEventListener('change', () => selectWinnerType('multi', 'start'));
     document.querySelector('#in_rangeEnd').addEventListener('change', () => selectWinnerType('multi', 'end'));
 
-    window.roulette.addEventListener('goal', () => {
+    window.roulette.addEventListener('goal', (e) => {
       ready = false;
+      waitAndShowFinalRanking();
       if (window.ads) window.ads.showResult();
       setTimeout(() => {
         document.querySelector('#settings').classList.remove('hide');
@@ -240,6 +283,14 @@ function getNames() {
       collapsible.classList.toggle('collapsed');
       toggleBtn.querySelector('.toggle-arrow').textContent =
         collapsible.classList.contains('collapsed') ? '▲' : '▼';
+    });
+
+    document.querySelector('#btnCloseFinal').addEventListener('click', () => {
+      document.querySelector('#finalRanking').hidden = true;
+    });
+    document.querySelector('#btnShuffle').addEventListener('click', () => {
+      clearTimeout(finalTimer);
+      document.querySelector('#finalRanking').hidden = true;
     });
 
     document.querySelector('#btnShuffle').click();
@@ -278,6 +329,24 @@ function getNames() {
 <h1 class="sr-only">KST Roulette</h1>
 <div class="brand">KST Roulette</div>
 <div class="kst-mark" aria-hidden="true"></div>
+
+<div id="finalRanking" class="final" hidden>
+  <div class="final-card" role="dialog" aria-label="최종 순위">
+    <button id="btnCloseFinal" class="final-close" aria-label="닫기">×</button>
+    <div class="final-head">
+      <div class="final-trophy">🏆</div>
+      <div class="final-label">1위</div>
+      <div id="finalWinner" class="final-winner"></div>
+    </div>
+    <h2 class="final-title">최종 순위</h2>
+    <ol id="finalList" class="final-list"></ol>
+    <p id="finalNote" class="final-note" hidden>순위가 확정된 구슬 뒤의 "진행 중"은 현재 위치 기준입니다.</p>
+    <div class="final-foot">
+      <span class="final-mark" aria-hidden="true"></span>
+      <span class="final-brand">KST Roulette</span>
+    </div>
+  </div>
+</div>
 <div id="settings" class="settings">
   <div class="right">
     <button id="btnToggleSettings" class="btn-toggle-settings">

@@ -217,6 +217,21 @@ export class Roulette extends EventTarget {
     }, 1000);
   }
 
+  /** 최종 순위표용. 골인한 구슬 뒤에 아직 달리는 구슬을 현재 위치 순으로 붙인다 */
+  public getRanking() {
+    return [...this._winners, ...this._marbles].map((m, i) => ({
+      name: m.name,
+      hue: m.hue,
+      rank: i + 1,
+      finished: i < this._winners.length,
+      winning: this._isWinningRank(i),
+    }));
+  }
+
+  public getRemainingCount() {
+    return this._marbles.length;
+  }
+
   private _calcTimeScale(): number {
     if (!this._stage) return 1;
     const targetIndex = this._targetIndex;
