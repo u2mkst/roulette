@@ -10,7 +10,6 @@ import type { Camera } from './camera';
 import { canvasHeight, canvasWidth, initialZoom, Themes, winnerAreaHeight } from './data/constants';
 import type { StageDef } from './data/maps';
 import type { GameObject } from './gameObject';
-import { KeywordService } from './keywordService';
 import type { Marble } from './marble';
 import { MINIMAP_INSET, MINIMAP_WIDTH } from './minimap';
 import type { WinnerRange } from './options';
@@ -65,16 +64,6 @@ export class RouletteRenderer {
   private _resultCloseRect: AdRect | null = null;
   private _resultPopupClosed = false;
   private _lastResult: Marble[] | null = null;
-  protected _keywordService: KeywordService;
-
-  constructor() {
-    this._keywordService = this.createKeywordService();
-  }
-
-  protected createKeywordService(): KeywordService {
-    return new KeywordService();
-  }
-
   get width() {
     return this._sceneCanvas.width;
   }
@@ -92,7 +81,7 @@ export class RouletteRenderer {
   }
 
   async init() {
-    await Promise.all([this._load(), this._keywordService.init()]);
+    await this._load();
 
     this._canvas = document.createElement('canvas');
     this._canvas.width = canvasWidth;
@@ -166,12 +155,7 @@ export class RouletteRenderer {
   }
 
   private getMarbleImage(name: string): CanvasImageSource | undefined {
-    // Priority 1: Hardcoded images
-    if (this._images[name]) {
-      return this._images[name];
-    }
-    // Priority 2: Keyword sprites from API
-    return this._keywordService.getSprite(name);
+    return this._images[name];
   }
 
   protected onBeforeEntities(): void {}

@@ -37,7 +37,8 @@ export class AdService {
   async fetchAds(): Promise<void> {
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/ads?select=*&active=eq.true&order=created_at`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        // sb_publishable_ 키는 JWT가 아니므로 Authorization 헤더로 보내면 401이 난다
+        headers: { apikey: SUPABASE_KEY },
       });
       if (!res.ok) return;
       const rows = (await res.json()) as AdRow[];
