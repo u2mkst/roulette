@@ -4,9 +4,7 @@ A customized fork of the original marble roulette project.
 
 ## Features
 - Original roulette visual style
-- Clear result display
-- Fullscreen mode
-- Add and remove roulette entries
+- Ads managed from `/admin.html` (Supabase)
 
 ## Development
 ```sh

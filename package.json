@@ -13,8 +13,8 @@
   },
   "scripts": {
     "lint": "biome check --fix src/",
-    "dev": "parcel index.html --port 1235",
-    "build": "parcel build index.html --public-url /",
+    "dev": "parcel index.html admin.html --port 1235",
+    "build": "parcel build index.html admin.html --public-url /",
     "simulate": "tsx scripts/simulate.ts"
   },
   "dependencies": {

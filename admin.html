@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>KST Roulette 광고 관리</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#111;color:#eee;margin:0;padding:16px}
+  main{max-width:760px;margin:0 auto}
+  h1{font-size:22px} h2{font-size:17px;margin-top:28px}
+  input,button{font:inherit;padding:8px 10px;border-radius:6px;border:1px solid #555;background:#222;color:#eee}
+  button{cursor:pointer;background:#3b6ef5;border-color:#3b6ef5} button.sub{background:#333;border-color:#555}
+  button.del{background:#b33;border-color:#b33}
+  label{display:block;margin:12px 0 4px;font-size:14px;color:#bbb}
+  .full{width:100%;box-sizing:border-box}
+  .hint{font-size:12px;color:#888;margin-top:2px}
+  .card{background:#1b1b1b;border:1px solid #333;border-radius:10px;padding:14px;margin:10px 0}
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+  .thumbs figure{margin:0;font-size:12px;color:#999} .thumbs img{display:block;max-width:150px;max-height:90px;border-radius:4px;background:#000}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  #msg{margin:10px 0;color:#7fd}
+</style>
+</head>
+<body>
+<main>
+  <h1>KST Roulette 광고 관리</h1>
+  <div id="msg"></div>
+
+  <section id="login" hidden>
+    <label>이메일</label><input id="email" type="email" class="full" autocomplete="username">
+    <label>비밀번호</label><input id="password" type="password" class="full" autocomplete="current-password">
+    <p><button id="btnLogin">로그인</button></p>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="row"><span id="who"></span><button class="sub" id="btnLogout">로그아웃</button></div>
+
+    <h2>새 광고 등록</h2>
+    <div class="card">
+      <label>광고주 이름 *</label><input id="advertiser" class="full">
+      <label>한 줄 문구</label><input id="tagline" class="full">
+      <label>클릭 시 이동할 주소</label><input id="linkUrl" class="full" placeholder="https://">
+      <label>① 시작 전 프리롤 이미지 (로고, 정사각형 권장)</label><input type="file" id="fPreroll" accept="image/*">
+      <label>② 맵 안 광고판 이미지 (가로로 긴 이미지 권장)</label><input type="file" id="fGoal" accept="image/*">
+      <label>③ 결과 화면 이미지</label><input type="file" id="fResult" accept="image/*">
+      <label>QR 코드 이미지 (선택)</label><input type="file" id="fQr" accept="image/*">
+      <div class="hint">이미지는 위치별로 필요한 것만 올리면 됩니다. 최대 5MB, png/jpg/webp/gif.</div>
+      <p><button id="btnAdd">등록</button></p>
+    </div>
+
+    <h2>등록된 광고</h2>
+    <div id="list"></div>
+  </section>
+</main>
+<script type="module">
+const SB_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const { createClient } = await import(/* @vite-ignore */ SB_CDN);
+const sb = createClient('https://axtibtdqnwjezyqiqeff.supabase.co', 'sb_publishable_AMAgYO0ye6ykCsJVdzV1jQ_WJXvN9vq');
+const $ = (s) => document.querySelector(s);
+const msg = (t) => { $('#msg').textContent = t || ''; };
+const FILES = { preroll_url: '#fPreroll', goal_url: '#fGoal', result_url: '#fResult', qr_url: '#fQr' };
+const LABELS = { preroll_url: '프리롤', goal_url: '광고판', result_url: '결과', qr_url: 'QR' };
+
+async function refresh() {
+  const { data: { session } } = await sb.auth.getSession();
+  $('#login').hidden = !!session;
+  $('#panel').hidden = !session;
+  if (!session) return;
+  $('#who').textContent = session.user.email;
+  await loadList();
+}
+
+async function upload(file) {
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await sb.storage.from('ad-images').upload(path, file, { contentType: file.type });
+  if (error) throw error;
+  return sb.storage.from('ad-images').getPublicUrl(path).data.publicUrl;
+}
+
+async function loadList() {
+  const { data, error } = await sb.from('ads').select('*').order('created_at');
+  if (error) return msg('목록을 불러오지 못했습니다: ' + error.message);
+  const list = $('#list');
+  list.replaceChildren();
+  if (!data.length) list.textContent = '등록된 광고가 없습니다.';
+  for (const ad of data) {
+    const card = document.createElement('div'); card.className = 'card';
+    const title = document.createElement('strong'); title.textContent = ad.advertiser + (ad.tagline ? ' · ' + ad.tagline : '');
+    card.append(title);
+    if (ad.link_url) { const p = document.createElement('div'); p.className = 'hint'; p.textContent = ad.link_url; card.append(p); }
+    const thumbs = document.createElement('div'); thumbs.className = 'thumbs';
+    for (const k of Object.keys(FILES)) if (ad[k]) {
+      const f = document.createElement('figure'); const img = document.createElement('img'); img.src = ad[k];
+      f.append(img, LABELS[k]); thumbs.append(f);
+    }
+    card.append(thumbs);
+    const row = document.createElement('div'); row.className = 'row';
+    const toggle = document.createElement('button'); toggle.className = 'sub'; toggle.textContent = ad.active ? '노출 중 (끄기)' : '꺼짐 (켜기)';
+    toggle.onclick = async () => { await sb.from('ads').update({ active: !ad.active }).eq('id', ad.id); loadList(); };
+    const del = document.createElement('button'); del.className = 'del'; del.textContent = '삭제';
+    del.onclick = async () => {
+      if (!confirm('이 광고를 삭제할까요?')) return;
+      const paths = Object.keys(FILES).map((k) => ad[k]).filter(Boolean).map((u) => u.split('/ad-images/')[1]);
+      if (paths.length) await sb.storage.from('ad-images').remove(paths);
+      const { error } = await sb.from('ads').delete().eq('id', ad.id);
+      if (error) msg('삭제 실패: ' + error.message); loadList();
+    };
+    row.append(toggle, del); card.append(row); list.append(card);
+  }
+}
+
+$('#btnLogin').onclick = async () => {
+  const { error } = await sb.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
+  msg(error ? '로그인 실패: ' + error.message : ''); refresh();
+};
+$('#btnLogout').onclick = async () => { await sb.auth.signOut(); refresh(); };
+$('#btnAdd').onclick = async () => {
+  const advertiser = $('#advertiser').value.trim();
+  if (!advertiser) return msg('광고주 이름을 입력하세요.');
+  const row = { advertiser, tagline: $('#tagline').value.trim() || null, link_url: $('#linkUrl').value.trim() || null };
+  if (row.link_url && !/^https?:\/\//.test(row.link_url)) return msg('주소는 http:// 또는 https:// 로 시작해야 합니다.');
+  $('#btnAdd').disabled = true; msg('업로드 중...');
+  try {
+    for (const [col, sel] of Object.entries(FILES)) {
+      const f = $(sel).files[0];
+      if (f) row[col] = await upload(f);
+    }
+    if (!row.preroll_url && !row.goal_url && !row.result_url) throw new Error('프리롤/광고판/결과 중 최소 한 장의 이미지를 올려주세요.');
+    const { error } = await sb.from('ads').insert(row);
+    if (error) throw error;
+    for (const sel of ['#advertiser', '#tagline', '#linkUrl', ...Object.values(FILES)]) $(sel).value = '';
+    msg('등록되었습니다.'); loadList();
+  } catch (e) { msg('실패: ' + (e.message || e)); }
+  $('#btnAdd').disabled = false;
+};
+refresh();
+</script>
+</body>
+</html>
