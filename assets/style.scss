@@ -634,3 +634,6 @@ div.toast {
 .final-foot{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #2c303a}
 .final-mark{width:26px;height:26px;background:#fff;-webkit-mask:url(images/kst-mark.png) center/contain no-repeat;mask:url(images/kst-mark.png) center/contain no-repeat}
 .final-brand{font-size:20px;font-weight:800;letter-spacing:.08em}
+.final-confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:10001}
+.final-share{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:#fee500;color:#191919;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.final-share:active{filter:brightness(.92)}
