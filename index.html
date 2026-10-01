@@ -25,10 +25,10 @@
   <meta name="theme-color" content="#ffffff">
 
   <meta name="description" content="구슬을 굴려 당첨자를 뽑는 추첨기">
-  <meta property="og:url" content="https://lazygyu.github.io/roulette/">
+  <meta property="og:url" content="/">
   <meta property="og:title" content="KST Roulette">
   <meta property="og:description" content="KST Roulette - 랜덤 추첨기">
-  <meta property="og:site_name" content="lazygyu.github.io">
+  <meta property="og:site_name" content="KST Roulette">
   <meta property="og:type" content="website">
 
   <link rel='stylesheet' href='assets/style.scss' />
@@ -191,22 +191,8 @@ function getNames() {
         const p = parseName(n);
         return { name: p.name, count: p.count };
       });
-      if (typeof umami !== 'undefined') {
-        const currentMap = window.roulette.getCurrentMap();
-        umami.track('start', {
-          count: window.roulette.getCount(),
-          map: currentMap ? currentMap.title : 'unknown',
-        });
-        marbles.forEach(m => {
-          umami.track('marble', { name: m.name, count: m.count });
-        });
-      }
       document.querySelector('#settings').classList.add('hide');
-      if (window.ads) {
-        window.ads.beginRound(() => window.roulette.start());
-      } else {
-        window.roulette.start();
-      }
+      window.roulette.start();
     });
 
     document.querySelector('#chkAutoRecording').addEventListener('change', (e) => {
@@ -233,7 +219,6 @@ function getNames() {
 
     window.roulette.addEventListener('goal', () => {
       ready = false;
-      if (window.ads) window.ads.showResult();
       setTimeout(() => {
         document.querySelector('#settings').classList.remove('hide');
       }, 3000);
