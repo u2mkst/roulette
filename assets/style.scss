@@ -609,3 +609,4 @@ div.toast {
 }
 
 .brand{position:fixed;left:0;right:0;bottom:6px;z-index:5;text-align:center;font-weight:800;font-size:clamp(20px,4vw,34px);letter-spacing:.08em;color:var(--copyright-color);text-shadow:0 2px 8px rgba(0,0,0,.45);pointer-events:none}
+.kst-mark{position:fixed;right:14px;bottom:12px;width:44px;height:44px;z-index:5;pointer-events:none;background-color:var(--copyright-color);-webkit-mask:url(images/kst-mark.png) center/contain no-repeat;mask:url(images/kst-mark.png) center/contain no-repeat;opacity:.9}
