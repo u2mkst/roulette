@@ -221,10 +221,12 @@ function getNames() {
 
     const lines = ['🏆 KST Roulette 결과'];
     lastRanking.slice(0, 5).forEach((r) => lines.push(`${r.rank}위  ${r.name}${r.winning ? ' ☆' : ''}`));
-    if (lastRanking.length > 5) lines.push(linked ? `… 전체 ${lastRanking.length}명 순위는 링크에서 확인` : `… 외 ${lastRanking.length - 5}명`);
+    if (lastRanking.length > 5) lines.push(linked ? `… 전체 ${lastRanking.length}명 순위 보기 👇` : `… 외 ${lastRanking.length - 5}명`);
+    // 링크는 항상 본문에 직접 넣는다. 공유 시트(카카오톡 등)는 별도로 넘긴 url을 버리는 경우가 있다
+    if (linked) lines.push(url);
     const shortText = lines.join('\n');
     // 링크를 만들지 못했을 때를 위해 복사용 텍스트에는 전체 순위를 담는다
-    const fullText = ['🏆 KST Roulette 결과', ...lastRanking.slice(0, 40).map((r) => `${r.rank}위  ${r.name}${r.winning ? ' ☆' : ''}`)].join('\n');
+    const fullText = ['🏆 KST Roulette 결과', ...lastRanking.slice(0, 40).map((r) => `${r.rank}위  ${r.name}${r.winning ? ' ☆' : ''}`), url].join('\n');
 
     // 1순위: 카카오톡 공식 공유(친구/채팅방 선택 창). 카카오 텍스트 템플릿은 200자까지라 상위 5명 + 전체 순위 링크를 보낸다
     try {
@@ -242,14 +244,14 @@ function getNames() {
     // 2순위: 모바일 공유 시트(카카오톡 포함). 3순위: 복사해서 붙여넣기
     const text = linked ? shortText : fullText;
     if (navigator.share) {
-      try { await navigator.share({ title: 'KST Roulette', text, url }); return; }
+      try { await navigator.share({ title: 'KST Roulette', text }); return; }
       catch (e) { if (e && e.name === 'AbortError') return; }
     }
     try {
-      await navigator.clipboard.writeText(text + '\n' + url);
+      await navigator.clipboard.writeText(text);
       done('복사됨! 카톡에 붙여넣으세요');
     } catch (e) {
-      prompt('아래 내용을 복사해서 카카오톡에 붙여넣으세요', text + '\n' + url);
+      prompt('아래 내용을 복사해서 카카오톡에 붙여넣으세요', text);
     }
   }
 
