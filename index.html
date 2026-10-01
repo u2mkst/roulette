@@ -179,12 +179,51 @@ function getNames() {
     return lines.join('\n');
   }
 
+  // 카카오 JavaScript 키는 공개용 키다(허용 도메인은 카카오 개발자 콘솔에서 제한한다)
+  const KAKAO_JS_KEY = 'cb544b3826c4551884efaf636f5a7fff';
+  let kakaoLoading = null;
+  function loadKakao() {
+    if (window.Kakao && window.Kakao.isInitialized()) return Promise.resolve(window.Kakao);
+    if (!kakaoLoading) {
+      kakaoLoading = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js';
+        s.crossOrigin = 'anonymous';
+        s.onload = () => {
+          try {
+            if (!window.Kakao.isInitialized()) window.Kakao.init(KAKAO_JS_KEY);
+            resolve(window.Kakao);
+          } catch (e) { reject(e); }
+        };
+        s.onerror = () => { kakaoLoading = null; reject(new Error('kakao sdk load failed')); };
+        document.head.appendChild(s);
+      });
+    }
+    return kakaoLoading;
+  }
+
   async function shareResult() {
     const label = document.querySelector('#shareLabel');
     const text = buildShareText();
     const url = location.origin + '/';
     const done = (msg) => { label.textContent = msg; setTimeout(() => { label.textContent = '카카오톡으로 결과 공유'; }, 2500); };
-    // 모바일: 공유 시트(카카오톡 포함)를 연다. 데스크톱 등 미지원 환경: 복사해서 붙여넣게 한다
+    // 1순위: 카카오톡 공식 공유(친구/채팅방 선택 창). 카카오 텍스트 템플릿은 200자까지라 상위 5명만 보낸다
+    try {
+      const Kakao = await loadKakao();
+      const short = ['🏆 KST Roulette 결과'];
+      lastRanking.slice(0, 5).forEach((r) => short.push(`${r.rank}위  ${r.name}${r.winning ? ' ☆' : ''}`));
+      if (lastRanking.length > 5) short.push(`… 외 ${lastRanking.length - 5}명`);
+      Kakao.Share.sendDefault({
+        objectType: 'text',
+        text: short.join('\n'),
+        link: { mobileWebUrl: url, webUrl: url },
+        buttonTitle: '나도 돌려보기',
+      });
+      return;
+    } catch (e) {
+      console.warn('[share] 카카오 공유를 쓸 수 없어 기본 공유로 전환합니다', e);
+    }
+    // 2순위: 모바일 공유 시트(카카오톡 포함). 데스크톱 등 미지원 환경: 복사해서 붙여넣게 한다
     if (navigator.share) {
       try { await navigator.share({ title: 'KST Roulette', text, url }); return; }
       catch (e) { if (e && e.name === 'AbortError') return; }
