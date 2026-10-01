@@ -64,6 +64,7 @@ export class RouletteRenderer {
   private _resultCloseRect: AdRect | null = null;
   private _resultPopupClosed = false;
   private _lastResult: Marble[] | null = null;
+  private _kstLogo?: HTMLImageElement;
   get width() {
     return this._sceneCanvas.width;
   }
@@ -144,6 +145,12 @@ export class RouletteRenderer {
         this._images[name] = await this._loadImage(imgUrl.toString());
       })();
     });
+
+    loadPromises.push(
+      (async () => {
+        this._kstLogo = await this._loadImage(new URL('../assets/images/kst-logo.png', import.meta.url).toString());
+      })()
+    );
 
     loadPromises.push(
       (async () => {
@@ -238,11 +245,11 @@ export class RouletteRenderer {
   }
 
   private renderAdBoards(stage: StageDef): void {
-    const ad = this._ad;
-    if (!ad || !ad.slots?.includes('goal') || !stage.adBoards?.length) return;
+    if (!stage.adBoards?.length) return;
 
-    const img = this.adImage(ad.creatives.goal);
-    if (!img?.complete || img.naturalWidth === 0) return;
+    const ad = this._ad;
+    const adImg = ad?.slots?.includes('goal') ? this.adImage(ad.creatives.goal) : undefined;
+    const img = adImg?.complete && adImg.naturalWidth > 0 ? adImg : undefined;
 
     try {
       this.ctx.save();
@@ -251,7 +258,11 @@ export class RouletteRenderer {
         const h = board.h ?? 1;
         const x = board.x - w / 2;
         const y = board.y - h / 2;
-        this.ctx.drawImage(img, x, y, w, h);
+        if (img) {
+          this.ctx.drawImage(img, x, y, w, h);
+        } else {
+          this.drawKstBoard(x, y, w, h);
+        }
       }
     } catch (e) {
       console.error('[ads] 광고판 렌더링 실패, 이번 게재는 건너뜁니다', e);
@@ -259,6 +270,32 @@ export class RouletteRenderer {
     } finally {
       this.ctx.restore();
     }
+  }
+
+  /** 등록된 광고판 이미지가 없을 때 맵 안에 걸리는 KST Roulette 기본 간판 */
+  private drawKstBoard(x: number, y: number, w: number, h: number): void {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = h * 0.04;
+    ctx.strokeRect(x + h * 0.04, y + h * 0.04, w - h * 0.08, h * 0.92);
+
+    const pad = h * 0.14;
+    const logoH = h - pad * 2;
+    let textX = x + w / 2;
+    if (this._kstLogo?.complete && this._kstLogo.naturalWidth > 0) {
+      const logoW = (logoH * this._kstLogo.naturalWidth) / this._kstLogo.naturalHeight;
+      ctx.drawImage(this._kstLogo, x + pad, y + pad, logoW, logoH);
+      textX = x + pad + logoW + (w - pad * 2 - logoW) / 2;
+    }
+    ctx.fillStyle = '#111111';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `800 ${h * 0.34}px sans-serif`;
+    ctx.fillText('KST Roulette', textX, y + h / 2, w - (textX - x) * 0.4 - pad);
+    ctx.restore();
   }
 
   render(renderParameters: RenderParameters, uiObjects: UIObject[]) {
