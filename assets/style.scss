@@ -610,3 +610,27 @@ div.toast {
 
 .brand{position:fixed;left:0;right:0;bottom:6px;z-index:5;text-align:center;font-weight:800;font-size:clamp(20px,4vw,34px);letter-spacing:.08em;color:var(--copyright-color);text-shadow:0 2px 8px rgba(0,0,0,.45);pointer-events:none}
 .kst-mark{position:fixed;right:14px;bottom:12px;width:44px;height:44px;z-index:5;pointer-events:none;background-color:var(--copyright-color);-webkit-mask:url(images/kst-mark.png) center/contain no-repeat;mask:url(images/kst-mark.png) center/contain no-repeat;opacity:.9}
+
+.final{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:16px;animation:finalFade .35s ease}
+.final[hidden]{display:none}
+@keyframes finalFade{from{opacity:0}to{opacity:1}}
+.final-card{position:relative;width:min(420px,100%);max-height:92vh;display:flex;flex-direction:column;background:#14161b;color:#f1f3f7;border:1px solid #2c303a;border-radius:18px;padding:22px 20px 16px;box-shadow:0 20px 60px rgba(0,0,0,.6);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',Roboto,sans-serif}
+.final-close{position:absolute;top:10px;right:12px;width:32px;height:32px;border-radius:50%;border:0;background:#2a2e38;color:#fff;font-size:20px;line-height:1;cursor:pointer}
+.final-head{text-align:center}
+.final-trophy{font-size:34px;line-height:1}
+.final-label{margin-top:4px;font-size:13px;letter-spacing:.2em;color:#9aa3b2}
+.final-winner{font-size:clamp(28px,8vw,40px);font-weight:800;line-height:1.2;word-break:keep-all}
+.final-title{margin:14px 0 8px;font-size:14px;font-weight:600;color:#9aa3b2;text-align:center;border-top:1px solid #2c303a;padding-top:12px}
+.final-list{list-style:none;margin:0;padding:0;overflow:auto;flex:1;min-height:0}
+.final-list li{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:16px}
+.final-list li:nth-child(odd){background:rgba(255,255,255,.04)}
+.final-list li.winning{background:rgba(255,215,0,.14);box-shadow:inset 3px 0 0 rgba(255,215,0,.85)}
+.final-list li.running{opacity:.6}
+.final-list .no{width:28px;text-align:right;color:#8b93a3;font-variant-numeric:tabular-nums}
+.final-list .nm{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.final-list .tag{font-size:12px;color:#ffd84d}
+.final-list li.running .tag{color:#8b93a3}
+.final-note{margin:8px 0 0;font-size:12px;color:#8b93a3;text-align:center}
+.final-foot{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #2c303a}
+.final-mark{width:26px;height:26px;background:#fff;-webkit-mask:url(images/kst-mark.png) center/contain no-repeat;mask:url(images/kst-mark.png) center/contain no-repeat}
+.final-brand{font-size:20px;font-weight:800;letter-spacing:.08em}
