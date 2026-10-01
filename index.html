@@ -192,7 +192,11 @@ function getNames() {
         return { name: p.name, count: p.count };
       });
       document.querySelector('#settings').classList.add('hide');
-      window.roulette.start();
+      if (window.ads) {
+        window.ads.beginRound(() => window.roulette.start());
+      } else {
+        window.roulette.start();
+      }
     });
 
     document.querySelector('#chkAutoRecording').addEventListener('change', (e) => {
@@ -219,6 +223,7 @@ function getNames() {
 
     window.roulette.addEventListener('goal', () => {
       ready = false;
+      if (window.ads) window.ads.showResult();
       setTimeout(() => {
         document.querySelector('#settings').classList.remove('hide');
       }, 3000);
@@ -270,7 +275,6 @@ function getNames() {
   }
 </script>
 <h1 class="sr-only">KST Roulette</h1>
-<div id="adSlot" class="ad-slot" hidden></div>
 <div class="brand">KST Roulette</div>
 <div id="settings" class="settings">
   <div class="right">

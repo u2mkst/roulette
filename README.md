@@ -4,7 +4,7 @@ A customized fork of the original marble roulette project.
 
 ## Features
 - Original roulette visual style
-- Custom ads: edit `src/adConfig.ts`
+- Ads managed from `/admin.html` (Supabase)
 
 ## Development
 ```sh
