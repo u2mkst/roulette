@@ -1,12 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <script defer src="https://umami.lazygyu.net/script.js"
-          data-website-id="205aee0d-30b6-4c69-a053-0c72c8377be0"></script>
-
-  <title>Marble Roulette 마블룰렛</title>
+<title>KST Roulette</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="apple-touch-icon" sizes="57x57" href="assets/apple-icon-57x57.png">
   <link rel="apple-touch-icon" sizes="60x60" href="assets/apple-icon-60x60.png">
@@ -29,8 +26,8 @@
 
   <meta name="description" content="구슬을 굴려 당첨자를 뽑는 추첨기">
   <meta property="og:url" content="https://lazygyu.github.io/roulette/">
-  <meta property="og:title" content="Marble Roulette">
-  <meta property="og:description" content="마블 룰렛 공식 사이트">
+  <meta property="og:title" content="KST Roulette">
+  <meta property="og:description" content="KST Roulette - 랜덤 추첨기">
   <meta property="og:site_name" content="lazygyu.github.io">
   <meta property="og:type" content="website">
 
@@ -39,16 +36,7 @@
 <body>
 <script type="module" src="./src/index.ts"></script>
 <script type="text/javascript">
-  window.dataLayer = window.dataLayer || [];
-
-  function gtag() {
-    dataLayer.push(arguments);
-  }
-
-  gtag('js', new Date());
-  gtag('config', 'G-5899C1DJM0');
-
-  function getNames() {
+function getNames() {
     const value = document.querySelector('#in_names').value.trim();
     return value.split(/[,\r\n]/g).map(v => v.trim()).filter(v => !!v);
   }
@@ -198,11 +186,6 @@
 
     document.querySelector('#btnStart').addEventListener('click', () => {
       if (!ready) return;
-      gtag && gtag('event', 'start', {
-        'event_category': 'roulette',
-        'event_label': 'start',
-        'value': window.roulette.getCount(),
-      });
       const names = getNames();
       const marbles = names.map(n => {
         const p = parseName(n);
@@ -299,55 +282,9 @@
     // };
     // setTimeout(checkDonateButtonLoaded, 100);
 
-    const currentNotice = 7;
-    const noticeKey = 'lastViewedNotification';
-
-    const closeNotice = () => {
-      document.querySelector('#notice').style.display = 'none';
-      localStorage.setItem(noticeKey, currentNotice.toString());
-    };
-
-    const openNotice = () => {
-      console.log('openNotice');
-      document.querySelector('#notice').style.display = 'flex';
-    };
-
-    document.querySelector('#closeNotice').addEventListener('click', () => {
-      closeNotice();
-    });
-
-    document.querySelector('#btnNotice').addEventListener('click', () => {
-      openNotice();
-    });
-
-    function simpleToast(msg) {
-      const toast = document.createElement('div');
-      toast.classList.add('toast');
-      toast.innerHTML = msg;
-
-      if (window.translateElement) {
-        console.log('try to translate');
-        window.translateElement(toast);
-      }
-
-      document.body.appendChild(toast);
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 1200);
-    }
-
-    const checkNotice = () => {
-      const lastViewed = localStorage.getItem(noticeKey);
-      console.log('lastViewed', lastViewed);
-      if (lastViewed === null || Number(lastViewed) < currentNotice) {
-        openNotice();
-      }
-    };
-
-    checkNotice();
   }
 </script>
-<h1 class="sr-only">Marble Roulette™ 마블 룰렛™ - 랜덤 추첨기</h1>
+<h1 class="sr-only">KST Roulette - 랜덤 추첨기</h1>
 <div id="settings" class="settings">
   <div class="right">
     <button id="btnToggleSettings" class="btn-toggle-settings">
@@ -410,14 +347,8 @@
   <div class="left">
     <h3 data-trans>Enter names below</h3>
     <textarea id="in_names" placeholder="Input names separated by commas or line feed here" data-trans="placeholder">수박*2,키위*2,귤*2</textarea>
+    <div id="kstItems"><div class="kst-add-row"><input id="kstNewItem" type="text" placeholder="항목 추가"><button id="kstAddItem" type="button">추가</button></div><div id="kstItemList"></div></div>
     <div class="actions">
-      <button id="btnNotice">
-        <i class="icon megaphone"></i>
-      </button>
-      <a href='https://marblerouletteshop.com' target='_blank' id="btnShop" class='btn' title='MarbleRoulette Shop'>
-        <i class="icon shop"></i>
-        <span>Shop</span>
-      </a>
       <div class="sep"></div>
       <button id="btnShuffle">
         <i class="icon shuffle"></i>
@@ -430,20 +361,21 @@
     </div>
   </div>
 </div>
-<div id="notice">
-  <h2>Notice</h2>
-  <div class="notice-body">
-    <h3>커스텀 룰렛 교사 특별 연장 안내</h3>
-    <p>
-      교육 현장에서 마블 룰렛을 사용하시는 교사 분들을 위한 커스텀 룰렛 기간 연장을 상시 지원하고 있습니다.<br />
-      <a href='https://marblerouletteshop.com/news/2' target='_blank'>상세한 내용은 여기를 클릭해 확인하세요.</a>
-    </p>
-  </div>
-  <div class="notice-action">
-    <button id="closeNotice" data-trans>Close</button>
-  </div>
-</div>
-<div class="copyright">&copy; 2022-2026. 마블 룰렛™ by <a href="https://lazygyu.net" target="_blank">lazygyu</a> | <a href="https://marblerouletteshop.com/advertise" target="_blank">광고문의</a>
-</div>
+<div class="copyright">KST Roulette · 랜덤 추첨기</div>
+
+<div id="kstResult" hidden><div class="kst-result-card"><h2>추첨 결과</h2><ol id="kstResultList"></ol><button id="kstCloseResult" type="button">확인</button></div></div>
+<button id="kstFullscreen" type="button">전체화면</button>
+<script>
+(function(){
+const input=document.querySelector('#in_names'),list=document.querySelector('#kstItemList'),newItem=document.querySelector('#kstNewItem'),add=document.querySelector('#kstAddItem'),result=document.querySelector('#kstResult'),resultList=document.querySelector('#kstResultList');
+const items=()=>input.value.split(/[,\r\n]+/).map(v=>v.trim()).filter(Boolean);
+const render=()=>{list.replaceChildren();items().forEach((name,i)=>{const row=document.createElement('span');row.textContent=name;const b=document.createElement('button');b.type='button';b.textContent='×';b.onclick=()=>{const a=items();a.splice(i,1);input.value=a.join('\n');input.dispatchEvent(new Event('input',{bubbles:true}));render()};row.appendChild(b);list.appendChild(row)})};
+add.onclick=()=>{const v=newItem.value.trim();if(!v)return;input.value=[...items(),v].join('\n');newItem.value='';input.dispatchEvent(new Event('input',{bubbles:true}));render()};
+newItem.onkeydown=e=>{if(e.key==='Enter')add.click()};input.addEventListener('input',render);render();
+document.querySelector('#kstCloseResult').onclick=()=>result.hidden=true;
+document.querySelector('#kstFullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch(e){}};
+const wait=()=>{if(window.roulette){window.roulette.addEventListener('goal',e=>{const w=e.detail?.winners||[];resultList.replaceChildren();w.forEach((n,i)=>{const li=document.createElement('li');li.textContent=(w.length>1?(i+1)+'위 · ':'')+n;resultList.appendChild(li)});if(w.length)result.hidden=false})}else setTimeout(wait,100)};wait();
+})();
+</script>
 </body>
 </html>
