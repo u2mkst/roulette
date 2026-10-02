@@ -42,6 +42,7 @@
   .foot{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid #2c303a}
   .mark{width:26px;height:26px;background:#fff;-webkit-mask:url(assets/images/kst-mark.png) center/contain no-repeat;mask:url(assets/images/kst-mark.png) center/contain no-repeat}
   .brand{font-size:20px;font-weight:800;letter-spacing:.08em}
+  .expire{margin:12px 0 0;text-align:center;font-size:12px;color:#8b93a3}
   .msg{text-align:center;color:#9aa3b2;padding:30px 0}
 </style>
 </head>
@@ -53,6 +54,7 @@
     <h2>최종 순위</h2>
     <ol id="list"></ol>
     <a class="again" href="/">나도 돌려보기</a>
+    <p id="expire" class="expire"></p>
   </div>
   <div class="foot"><span class="mark" aria-hidden="true"></span><span class="brand">KST Roulette</span></div>
 </div>
@@ -62,11 +64,11 @@
   const msg = document.getElementById('msg');
   if (!/^[a-z0-9]{8,12}$/.test(id)) { msg.textContent = '잘못된 주소입니다.'; return; }
   try {
-    const res = await fetch('https://axtibtdqnwjezyqiqeff.supabase.co/rest/v1/results?select=ranking&id=eq.' + id, {
+    const res = await fetch('https://axtibtdqnwjezyqiqeff.supabase.co/rest/v1/results?select=ranking,created_at&id=eq.' + id, {
       headers: { apikey: 'sb_publishable_AMAgYO0ye6ykCsJVdzV1jQ_WJXvN9vq' },
     });
     const rows = res.ok ? await res.json() : [];
-    if (!rows.length) { msg.textContent = '결과를 찾을 수 없습니다.'; return; }
+    if (!rows.length) { msg.textContent = '결과가 없거나 보관 기간(5일)이 지나 삭제되었습니다.'; return; }
     const ranking = rows[0].ranking;
     const w = document.getElementById('winner');
     w.textContent = ranking[0].name;
@@ -81,6 +83,12 @@
       const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = r.winning ? '당첨' : '';
       li.append(no, nm, tag); list.append(li);
     });
+    const left = 5 * 86400000 - (Date.now() - new Date(rows[0].created_at).getTime());
+    const note = document.getElementById('expire');
+    if (left > 0) {
+      const days = Math.floor(left / 86400000), hours = Math.floor((left % 86400000) / 3600000);
+      note.textContent = days >= 1 ? `이 결과는 ${days}일 후 자동 삭제됩니다` : `이 결과는 ${Math.max(1, hours)}시간 후 자동 삭제됩니다`;
+    }
     msg.hidden = true; document.getElementById('content').hidden = false;
   } catch (e) { msg.textContent = '결과를 불러오지 못했습니다.'; }
 })();
