@@ -52,8 +52,8 @@ const CLOSE_FADE_MS = 250;
 const CLOSE_INSET = 12;
 const CLOSE_HIT_PADDING = 8;
 
-const SERIF = `'Nanum Myeongjo', 'Noto Serif KR', AppleMyungjo, Batang, serif`;
-const SANS = `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+const SERIF = `'A2z', 'Nanum Myeongjo', 'Noto Serif KR', AppleMyungjo, Batang, serif`;
+const SANS = `'A2z', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
 
 function ready(img?: HTMLImageElement): img is HTMLImageElement {
   return !!img?.complete && img.naturalWidth > 0;
