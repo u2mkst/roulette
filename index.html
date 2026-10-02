@@ -224,9 +224,14 @@ function getNames() {
     c.fillStyle = g; c.fillRect(0, 0, W, H);
     c.strokeStyle = 'rgba(255,255,255,.12)'; c.lineWidth = 4; c.strokeRect(24, 24, W - 48, H - 48);
 
-    const font = "'A2z', 'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+    const font = "'Mona12 Color Emoji', 'A2z', 'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
     // 웹폰트가 로드된 뒤에 그려야 카드 이미지에 폰트가 적용된다
-    try { await Promise.all([500, 600, 700, 800].map((w) => document.fonts.load(`${w} 40px A2z`, '가나다ABC123'))); } catch (e) { /* 폰트를 못 받아도 기본 폰트로 그린다 */ }
+    try {
+      await Promise.race([
+        Promise.all([...[500, 600, 700, 800].map((w) => document.fonts.load(`${w} 40px A2z`, '가나다ABC123')), document.fonts.load('40px "Mona12 Color Emoji"', '🏆')]),
+        new Promise((r) => setTimeout(r, 2500)),
+      ]);
+    } catch (e) { /* 폰트를 못 받아도 기본 폰트로 그린다 */ }
     const top = lastRanking[0];
 
     // 왼쪽: 1위
@@ -287,6 +292,7 @@ function getNames() {
     const idle = '카카오톡으로 결과 공유';
     const done = (msg) => { label.textContent = msg; setTimeout(() => { label.textContent = idle; }, 2500); };
     label.textContent = '링크 만드는 중…';
+    document.querySelector('#shareDebug').hidden = true;
 
     let url = location.origin + '/';
     let linked = false;
@@ -306,11 +312,14 @@ function getNames() {
     try {
       const Kakao = await loadKakao();
       if (linked) {
+        let stage = '카드 그리기';
         try {
           const blob = await renderShareCard();
+          stage = '이미지 업로드';
           const dt = new DataTransfer();
           dt.items.add(new File([blob], 'kst-result.png', { type: 'image/png' }));
           const up = await Kakao.Share.uploadImage({ file: dt.files });
+          stage = '카카오 전송';
           const top = lastRanking[0];
           Kakao.Share.sendDefault({
             objectType: 'feed',
@@ -330,6 +339,12 @@ function getNames() {
           return;
         } catch (e) {
           console.warn('[share] 카드 이미지 공유 실패, 텍스트 공유로 전환합니다', e);
+          // 원인을 화면에서 바로 볼 수 있게 남긴다
+          let why = e && e.message ? e.message : '';
+          if (!why) { try { why = JSON.stringify(e); } catch (_) { why = String(e); } }
+          const dbg = document.querySelector('#shareDebug');
+          dbg.textContent = `카드 이미지 전송 실패 (${stage}): ${why}`;
+          dbg.hidden = false;
         }
       }
       Kakao.Share.sendDefault({
@@ -578,6 +593,7 @@ function getNames() {
       <span id="shareLabel">카카오톡으로 결과 공유</span>
     </button>
     <button id="btnCopyLink" class="final-copy" type="button">결과 링크 복사</button>
+    <p id="shareDebug" class="final-debug" hidden></p>
     <div class="final-foot">
       <span class="final-mark" aria-hidden="true"></span>
       <span class="final-brand">KST Roulette</span>
