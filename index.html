@@ -135,6 +135,7 @@ function getNames() {
   }
 
   let lastRanking = [];
+  let lastShareUrl = '';
 
   // 우승자 이름 위에서 터지는 폭죽. 외부 라이브러리 없이 캔버스로 그린다
   function fireConfetti() {
@@ -223,7 +224,9 @@ function getNames() {
     c.fillStyle = g; c.fillRect(0, 0, W, H);
     c.strokeStyle = 'rgba(255,255,255,.12)'; c.lineWidth = 4; c.strokeRect(24, 24, W - 48, H - 48);
 
-    const font = "'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+    const font = "'A2z', 'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+    // 웹폰트가 로드된 뒤에 그려야 카드 이미지에 폰트가 적용된다
+    try { await Promise.all([500, 600, 700, 800].map((w) => document.fonts.load(`${w} 40px A2z`, '가나다ABC123'))); } catch (e) { /* 폰트를 못 받아도 기본 폰트로 그린다 */ }
     const top = lastRanking[0];
 
     // 왼쪽: 1위
@@ -263,6 +266,22 @@ function getNames() {
     return new Promise((res) => cv.toBlob(res, 'image/png'));
   }
 
+  async function copyResultLink() {
+    const btn = document.querySelector('#btnCopyLink');
+    const orig = '결과 링크 복사';
+    btn.textContent = '링크 만드는 중…';
+    try {
+      if (!lastShareUrl) lastShareUrl = await saveRanking();
+      await navigator.clipboard.writeText(lastShareUrl);
+      btn.textContent = '복사됨! 카톡에 붙여넣으세요';
+    } catch (e) {
+      btn.textContent = orig;
+      if (lastShareUrl) prompt('링크를 복사하세요', lastShareUrl);
+      return;
+    }
+    setTimeout(() => { btn.textContent = orig; }, 2500);
+  }
+
   async function shareResult() {
     const label = document.querySelector('#shareLabel');
     const idle = '카카오톡으로 결과 공유';
@@ -271,7 +290,7 @@ function getNames() {
 
     let url = location.origin + '/';
     let linked = false;
-    try { url = await saveRanking(); linked = true; } catch (e) { console.warn('[share] 결과 링크 저장 실패', e); }
+    try { url = await saveRanking(); linked = true; lastShareUrl = url; } catch (e) { console.warn('[share] 결과 링크 저장 실패', e); }
     label.textContent = idle;
 
     const lines = ['🏆 KST Roulette 결과'];
@@ -340,6 +359,7 @@ function getNames() {
   function showFinalRanking(ranking) {
     if (!ranking || !ranking.length) return;
     lastRanking = ranking;
+    lastShareUrl = '';
     const box = document.querySelector('#finalRanking');
     const list = document.querySelector('#finalList');
     list.replaceChildren();
@@ -495,6 +515,7 @@ function getNames() {
     });
 
     document.querySelector('#btnShareKakao').addEventListener('click', shareResult);
+    document.querySelector('#btnCopyLink').addEventListener('click', copyResultLink);
     document.querySelector('#btnCloseFinal').addEventListener('click', () => {
       document.querySelector('#finalRanking').hidden = true;
     });
@@ -556,6 +577,7 @@ function getNames() {
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3C6.48 3 2 6.58 2 11c0 2.84 1.87 5.33 4.69 6.75l-.95 3.5c-.08.3.26.54.52.36l4.2-2.78c.5.06 1.01.17 1.54.17 5.52 0 10-3.58 10-8S17.52 3 12 3z"/></svg>
       <span id="shareLabel">카카오톡으로 결과 공유</span>
     </button>
+    <button id="btnCopyLink" class="final-copy" type="button">결과 링크 복사</button>
     <div class="final-foot">
       <span class="final-mark" aria-hidden="true"></span>
       <span class="final-brand">KST Roulette</span>
