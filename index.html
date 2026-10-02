@@ -31,6 +31,10 @@
   <meta property="og:description" content="KST Roulette">
   <meta property="og:site_name" content="KST Roulette">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://u2mkst.vercel.app/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
 
   <link rel='stylesheet' href='assets/style.scss' />
 </head>
@@ -208,6 +212,57 @@ function getNames() {
     return location.origin + '/result.html?id=' + id;
   }
 
+  // 카톡 대화창에 크게 보일 결과 카드 이미지(2:1)를 그린다
+  async function renderShareCard() {
+    const W = 1600, H = 800;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const c = cv.getContext('2d');
+    const g = c.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#171a21'); g.addColorStop(1, '#0d0f13');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.strokeStyle = 'rgba(255,255,255,.12)'; c.lineWidth = 4; c.strokeRect(24, 24, W - 48, H - 48);
+
+    const font = "'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+    const top = lastRanking[0];
+
+    // 왼쪽: 1위
+    c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+    c.font = `120px ${font}`; c.fillStyle = '#fff'; c.fillText('🏆', 90, 270);
+    c.font = `600 44px ${font}`; c.fillStyle = '#9aa3b2'; c.fillText('1위', 100, 350);
+    let size = 150;
+    c.font = `800 ${size}px ${font}`;
+    while (c.measureText(top.name).width > 640 && size > 50) { size -= 6; c.font = `800 ${size}px ${font}`; }
+    c.fillStyle = `hsl(${top.hue} 100% 72%)`; c.fillText(top.name, 96, 350 + size * 1.05);
+
+    // 오른쪽: 2~5위
+    const rx = 860;
+    c.fillStyle = 'rgba(255,255,255,.12)'; c.fillRect(rx - 50, 90, 3, 520);
+    c.font = `600 40px ${font}`; c.fillStyle = '#9aa3b2'; c.fillText('최종 순위', rx, 140);
+    lastRanking.slice(1, 5).forEach((r, i) => {
+      const y = 230 + i * 92;
+      c.font = `500 48px ${font}`; c.fillStyle = '#8b93a3'; c.textAlign = 'right'; c.fillText(String(r.rank), rx + 56, y);
+      c.textAlign = 'left'; c.font = `700 58px ${font}`; c.fillStyle = `hsl(${r.hue} 100% 72%)`;
+      let nm = r.name; while (c.measureText(nm).width > 600 && nm.length > 2) nm = nm.slice(0, -1);
+      c.fillText(nm === r.name ? nm : nm + '…', rx + 84, y);
+    });
+    if (lastRanking.length > 5) { c.font = `500 40px ${font}`; c.fillStyle = '#8b93a3'; c.textAlign = 'left'; c.fillText(`외 ${lastRanking.length - 5}명`, rx + 84, 230 + 4 * 92 - 10); }
+
+    // 아래: KST 브랜딩
+    c.fillStyle = 'rgba(255,255,255,.12)'; c.fillRect(90, 680, W - 180, 3);
+    try {
+      const img = new Image(); img.src = document.querySelector('.kst-mark') ? getComputedStyle(document.querySelector('.final-mark')).maskImage.replace(/^url\(["']?|["']?\)$/g, '') : '';
+      await new Promise((ok, no) => { img.onload = ok; img.onerror = no; });
+      const off = document.createElement('canvas'); off.width = 64; off.height = 64;
+      const o = off.getContext('2d'); o.drawImage(img, 0, 0, 64, 64);
+      o.globalCompositeOperation = 'source-in'; o.fillStyle = '#fff'; o.fillRect(0, 0, 64, 64);
+      c.drawImage(off, W / 2 - 235, 704, 56, 56);
+    } catch (e) { /* 마크를 못 불러와도 글자는 그린다 */ }
+    c.textAlign = 'left'; c.font = `800 52px ${font}`; c.fillStyle = '#fff';
+    c.fillText('KST Roulette', W / 2 - 165, 748);
+    return new Promise((res) => cv.toBlob(res, 'image/png'));
+  }
+
   async function shareResult() {
     const label = document.querySelector('#shareLabel');
     const idle = '카카오톡으로 결과 공유';
@@ -228,9 +283,36 @@ function getNames() {
     // 링크를 만들지 못했을 때를 위해 복사용 텍스트에는 전체 순위를 담는다
     const fullText = ['🏆 KST Roulette 결과', ...lastRanking.slice(0, 40).map((r) => `${r.rank}위  ${r.name}${r.winning ? ' ☆' : ''}`), url].join('\n');
 
-    // 1순위: 카카오톡 공식 공유(친구/채팅방 선택 창). 카카오 텍스트 템플릿은 200자까지라 상위 5명 + 전체 순위 링크를 보낸다
+    // 1순위: 카카오톡 공식 공유 — 결과 카드 이미지 + 전체 순위 버튼
     try {
       const Kakao = await loadKakao();
+      if (linked) {
+        try {
+          const blob = await renderShareCard();
+          const dt = new DataTransfer();
+          dt.items.add(new File([blob], 'kst-result.png', { type: 'image/png' }));
+          const up = await Kakao.Share.uploadImage({ file: dt.files });
+          const top = lastRanking[0];
+          Kakao.Share.sendDefault({
+            objectType: 'feed',
+            content: {
+              title: `🏆 1위 ${top.name}`,
+              description: lastRanking.slice(1, 4).map((r) => `${r.rank}위 ${r.name}`).join(' · ') + (lastRanking.length > 4 ? ` 외 ${lastRanking.length - 4}명` : ''),
+              imageUrl: up.infos.original.url,
+              imageWidth: 1600,
+              imageHeight: 800,
+              link: { mobileWebUrl: url, webUrl: url },
+            },
+            buttons: [
+              { title: '전체 순위 보기', link: { mobileWebUrl: url, webUrl: url } },
+              { title: '나도 돌려보기', link: { mobileWebUrl: location.origin + '/', webUrl: location.origin + '/' } },
+            ],
+          });
+          return;
+        } catch (e) {
+          console.warn('[share] 카드 이미지 공유 실패, 텍스트 공유로 전환합니다', e);
+        }
+      }
       Kakao.Share.sendDefault({
         objectType: 'text',
         text: shortText,

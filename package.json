@@ -14,7 +14,7 @@
   "scripts": {
     "lint": "biome check --fix src/",
     "dev": "parcel index.html admin.html result.html --port 1235",
-    "build": "parcel build index.html admin.html result.html --public-url /",
+    "build": "parcel build index.html admin.html result.html --public-url / && cp assets/og-image.png dist/og-image.png",
     "simulate": "tsx scripts/simulate.ts"
   },
   "dependencies": {
