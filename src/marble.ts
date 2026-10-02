@@ -194,7 +194,7 @@ export class Marble {
 
   private _drawName(ctx: CanvasRenderingContext2D, zoom: number) {
     transformGuard(ctx, () => {
-      ctx.font = `12pt A2z, sans-serif`;
+      ctx.font = `12pt "Mona12 Color Emoji", A2z, sans-serif`;
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 2;
       ctx.fillStyle = this.color;
