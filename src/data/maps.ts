@@ -1,4 +1,5 @@
 import type { MapEntity } from '../types/MapEntity.type';
+import { kstStage } from './kstStage';
 
 export type AdBoard = {
   x: number;
@@ -16,6 +17,7 @@ export type StageDef = {
 };
 
 export const stages: StageDef[] = [
+  kstStage,
   {
     title: 'Wheel of fortune',
     goalY: 111,
