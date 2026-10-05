@@ -19,8 +19,6 @@ export const RIGHT = 18;
 export const CENTER = 13;
 const FUNNEL_HEIGHT = 4.5;
 const LIP = 0.6;
-const DIVIDER_RADIUS = 0.7;
-const DIVIDER_STEP = 1.3;
 
 const solid = { density: 1, angularVelocity: 0, restitution: 0 };
 
@@ -42,14 +40,6 @@ export const peg = (x: number, y: number, radius = 0.3): MapEntity => ({
   position: { x, y },
   props: { ...solid, restitution: 0.6 },
   shape: { type: 'circle', radius },
-});
-
-/** 갈림길 칸막이를 이루는 반원. 탄성이 낮아 구슬을 튕기지 않고 옆으로 굴려 보낸다 */
-const divider = (x: number, y: number): MapEntity => ({
-  type: 'static',
-  position: { x, y },
-  props: { ...solid, restitution: 0.4 },
-  shape: { type: 'circle', radius: DIVIDER_RADIUS },
 });
 
 /** 터지는 방울: 한 번 닿으면 사라지면서 구슬을 크게 튕겨 낸다 */
@@ -199,11 +189,12 @@ export class Builder {
    * 문 아래의 회전 막대가 구슬을 왼쪽/오른쪽으로 거의 반반 갈라 보낸다.
    *  - 느린 길: 지그재그 선반마다 볼거리(방울·범퍼·바람개비·K·트램펄린)가 있다
    *  - 빠른 길: 곧장 떨어지지만 트램펄린이 있어 구슬이 쭉 튕겨 나가 시간이 들쭉날쭉해진다
-   * 골인 판정은 y 좌표뿐이라 두 길 모두 바닥이 곧 골인선이다. 반환값은 goalY.
+   * 두 길은 마지막에 한 문(깔때기)으로 합쳐지고, 그 아래 결승선(goalY)을 한곳에서 지난다. 반환값은 goalY.
    */
   fork(top: number, o: ForkOptions) {
-    const LANE_LEFT = 6;
-    const LANE_RIGHT = 20;
+    // 레인을 넓게(8.5) 잡아 양쪽 벽 바람개비와 가운데 장애물이 함께 들어가게 한다
+    const LANE_LEFT = 4.5;
+    const LANE_RIGHT = 21.5;
     const g1 = this.funnel(top);
     this.add(...o.diverter(g1));
     // 두 번째 좁은 문: 앞 장애물에서 옆으로 튕긴 구슬을 다시 가운데로 모아 똑바로 떨어뜨린다
@@ -214,7 +205,10 @@ export class Builder {
 
     const SHELF_GAP = 6;
     const slowBottom = apex + 4 + o.slowKit.length * SHELF_GAP;
-    const goalY = slowBottom + 2;
+    // 두 길이 마지막에 한 문으로 합쳐지는 깔때기(mergeTop)와 그 아래 결승 통로
+    const mergeTop = slowBottom + 0.5;
+    const finishGate = 1.1;
+    const goalY = mergeTop + FUNNEL_HEIGHT + LIP + 2.5;
     const m = (x: number) => (o.slowSide === 'left' ? x : 2 * CENTER - x);
     const dir = o.slowSide === 'left' ? 1 : -1;
 
@@ -224,19 +218,22 @@ export class Builder {
         [LEFT, top],
         [LEFT, g],
         [LANE_LEFT, g + 3.5],
-        [LANE_LEFT, goalY + 0.75],
+        [LANE_LEFT, mergeTop],
+        [CENTER - finishGate, mergeTop + FUNNEL_HEIGHT],
+        [CENTER - finishGate, goalY + 0.75],
       ],
       [
         [RIGHT, top],
         [RIGHT, g],
         [LANE_RIGHT, g + 3.5],
-        [LANE_RIGHT, goalY + 0.75],
+        [LANE_RIGHT, mergeTop],
+        [CENTER + finishGate, mergeTop + FUNNEL_HEIGHT],
+        [CENTER + finishGate, goalY + 0.75],
       ]
     );
-    // 가운데 칸막이는 맞닿은 반원 사슬로 만든다. 매끈한 벽이면 구슬이 칸막이에 붙어 쭉 내려오기 때문이다.
-    // 맞닿은 원 사이 홈은 구슬을 붙잡지 못하고(양쪽 원이 같은 방향으로 밀어낸다) 바깥으로 굴려 보낸다.
-    for (let y = apex; y <= goalY + 0.75; y += DIVIDER_STEP) this.add(divider(CENTER, y));
+    // 가운데 칸막이. 구슬이 칸막이를 타고 내려오지 못하게 addWallSpinners 가 양옆에 바람개비를 번갈아 붙인다
     this.add(
+      slope(CENTER, apex, CENTER, mergeTop),
       poly([
         [CENTER - 2.4, apex + 2.3],
         [CENTER, apex],
@@ -249,9 +246,9 @@ export class Builder {
       const y = apex + 4 + i * SHELF_GAP;
       const nearDivider = i % 2 === 0;
       if (nearDivider) this.add(slope(m(LANE_LEFT), y, m(10.3), y + 1.6));
-      else this.add(slope(m(CENTER - DIVIDER_RADIUS), y, m(LANE_LEFT + 2.7), y + 1.6));
+      else this.add(slope(m(CENTER), y, m(LANE_LEFT + 2.7), y + 1.6));
       // 구슬이 틈으로 떨어지는 자리. 칸막이·벽과는 0.9 이상 띄운다
-      const kx = m(nearDivider ? 10.9 : 7.7);
+      const kx = m(nearDivider ? 10.9 : LANE_LEFT + 3.2);
       const ky = y + 3.8;
       // 구슬이 틈 쪽으로 미끄러져 나오는 방향의 반대로 튕기도록 트램펄린을 기울인다
       const tilt = (nearDivider ? -0.35 : 0.35) * dir;
@@ -284,22 +281,23 @@ export class Builder {
     const fastX = m;
     for (let j = 0; j < o.fastPads; j++) {
       const py = apex + 7.5 + j * 6.5;
-      const px = j % 2 === 0 ? 17 : 16;
+      const px = j % 2 === 0 ? 17.6 : 16.9;
       const tiltF = (j % 2 === 0 ? 0.3 : -0.3) * dir;
-      this.add(trampoline(fastX(px), py, 1.4, tiltF, 1.0));
-      if (j % 2 === 0) this.add(bubble(fastX(14.6), py - 1.8, 0.45), bubble(fastX(18.6), py - 2.6, 0.45));
+      this.add(trampoline(fastX(px), py, 1.2, tiltF, 1.0));
+      if (j % 2 === 0) this.add(bubble(fastX(15.9), py - 1.8, 0.45), bubble(fastX(18.6), py - 2.6, 0.45));
     }
     // 바닥 직전의 큰 발사대: 마지막에 한 번 더 크게 튕겨 순서가 뒤집힌다
-    this.add(trampoline(fastX(16.4), goalY - 3.2, 2.1, 0.22 * dir, 1.0));
+    this.add(trampoline(fastX(17.25), mergeTop - 3.4, 1.3, 0.22 * dir, 1.0));
     return goalY;
   }
 }
 
-/** 벽 가드의 반지름과 간격. 벽에 붙어 미끄러지는 구슬은 중심이 벽에서 0.25 떨어져 있으므로 반지름 0.7 이면 반드시 닿는다 */
-const GUARD_RADIUS = 0.7;
-const GUARD_SPACING = 2.5;
-/** 가드 가장자리와 다른 장애물 사이가 이 값보다 좁으면 구슬이 끼므로 그 자리에는 놓지 않는다 */
-const GUARD_CLEARANCE = 0.9;
+/** 벽 바람개비: 크기(팔 길이)와 간격. 팔 끝이 벽에 딱 닿도록 붙인다(틈이 0.35 정도면 구슬이 팔과 벽 사이에 끼어 으깨진다) */
+const WALL_SPINNER_SIZE = 1.0;
+const WALL_SPINNER_GAP = 0;
+const WALL_SPINNER_SPACING = 2.6;
+/** 바람개비 팔이 다른 장애물과 이 거리보다 가까우면 구슬이 끼므로 놓지 않는다 */
+const WALL_SPINNER_CLEARANCE = 0.4;
 
 const segDistance = (px: number, py: number, x1: number, y1: number, x2: number, y2: number) => {
   const dx = x2 - x1;
@@ -309,16 +307,21 @@ const segDistance = (px: number, py: number, x1: number, y1: number, x2: number,
   return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
 };
 
-/** 점에서 장애물 표면까지의 대략적인 거리 (원: 반지름 뺀 값, 상자: 중심선까지, 폴리라인: 선분까지) */
+/** 점에서 장애물 표면까지의 대략적인 거리 (원: 반지름 뺀 값, 상자: 중심선까지, 폴리라인: 선분까지, 회전체: 회전 반경 뺀 값) */
 function surfaceDistance(e: MapEntity, x: number, y: number, skip?: MapEntity): number {
   if (e === skip) return Infinity;
   const { position: pos, shape } = e;
   if (shape.type === 'circle') return Math.hypot(pos.x - x, pos.y - y) - shape.radius;
   if (shape.type === 'box') {
     const hx = shape.width;
+    if (e.type === 'kinematic') return Math.hypot(pos.x - x, pos.y - y) - hx;
     const cos = Math.cos(shape.rotation);
     const sin = Math.sin(shape.rotation);
     return segDistance(x, y, pos.x - hx * cos, pos.y - hx * sin, pos.x + hx * cos, pos.y + hx * sin) - shape.height;
+  }
+  if (e.type === 'kinematic') {
+    const reach = Math.max(...shape.points.map(([px, py]) => Math.hypot(px, py)));
+    return Math.hypot(pos.x - x, pos.y - y) - reach;
   }
   let best = Infinity;
   for (let i = 0; i < shape.points.length - 1; i++) {
@@ -330,18 +333,18 @@ function surfaceDistance(e: MapEntity, x: number, y: number, skip?: MapEntity): 
 }
 
 /**
- * 구슬이 벽에 붙어 쭉 내려오는 걸 막는 "벽 가드".
- * 길고 가파른 벽(수직에서 25° 이내) 위에 벽 중심에 걸친 반원 장애물을 일정 간격으로 박는다.
- * 벽을 타고 내려오는 구슬은 가드에 부딪혀 안쪽으로 밀려나고, 안쪽 장애물을 지나게 된다.
- *  - 중심이 벽 위라서 벽과 가드 사이에 구슬이 끼는 홈이 생기지 않는다.
- *  - 탄성은 낮게(0.4): 가드는 밀어내는 용도이지 튕겨 올리는 용도가 아니다. 탄성이 1 을 넘으면 구슬이 위로 솟는다.
- *  - 다른 장애물과 가장자리 간격이 좁으면 그 자리는 건너뛴다.
+ * 구슬이 벽에 붙어 쭉 내려오는 걸 막는 "벽 바람개비".
+ * 길고 가파른 벽(수직에서 25° 이내)마다 작은 바람개비를 벽에 딱 붙여 돌린다. 틈이 없어서
+ * 벽을 타고 내려오는 구슬은 돌아가는 팔에 부딪혀 안쪽으로 밀려난다.
+ *  - 벽이 통로 중심(x 13)의 왼쪽이면 오른쪽에, 오른쪽이면 왼쪽에 놓고, 중심의 칸막이는 좌우로 번갈아 놓는다.
+ *  - 다른 장애물과 가까운 자리는 건너뛴다.
  */
-export function addWallGuards(entities: MapEntity[]): MapEntity[] {
-  const guards: MapEntity[] = [];
+export function addWallSpinners(entities: MapEntity[]): MapEntity[] {
+  const spinners: MapEntity[] = [];
   const blocked = (x: number, y: number, wall: MapEntity) =>
-    entities.some((e) => surfaceDistance(e, x, y, wall) < GUARD_RADIUS + GUARD_CLEARANCE) ||
-    guards.some((g) => Math.hypot(g.position.x - x, g.position.y - y) < GUARD_SPACING * 0.8);
+    entities.some((e) => surfaceDistance(e, x, y, wall) < WALL_SPINNER_SIZE + WALL_SPINNER_CLEARANCE) ||
+    spinners.some((sp) => Math.hypot(sp.position.x - x, sp.position.y - y) < WALL_SPINNER_SPACING * 0.8);
+  let flip = 1;
   for (const e of entities) {
     if (e.type !== 'static' || e.shape.type !== 'polyline') continue;
     const pts = e.shape.points;
@@ -353,23 +356,28 @@ export function addWallGuards(entities: MapEntity[]): MapEntity[] {
       const len = Math.hypot(dx, dy);
       // 가파르고(수직에서 25° 이내) 충분히 긴 벽만
       if (len < 4 || Math.abs(dx) > Math.abs(dy) * Math.tan((25 * Math.PI) / 180)) continue;
-      for (let d = 1.5; d <= len - 1.5; d += GUARD_SPACING) {
-        const x = x1 + (dx * d) / len;
-        const y = y1 + (dy * d) / len;
+      for (let d = 2; d <= len - 2; d += WALL_SPINNER_SPACING) {
+        const wx = x1 + (dx * d) / len;
+        const wy = y1 + (dy * d) / len;
         // 구슬이 태어나는 맨 위쪽은 비워 둔다. 위로 튕겨 올랐다 떨어지는 구슬을 위해 약간 위(y -12)부터 놓는다
-        if (y < -12 || blocked(x, y, e)) continue;
-        guards.push({
-          type: 'static',
-          position: { x, y },
-          props: { density: 1, angularVelocity: 0, restitution: 0.4 },
-          shape: { type: 'circle', radius: GUARD_RADIUS },
-        });
+        if (wy < -12) continue;
+        // 통로 가운데의 칸막이는 양쪽이 모두 레인이라 좌우를 번갈아 놓되, 한쪽이 선반 등에 막히면 반대쪽에 놓는다
+        const isDivider = Math.abs(wx - CENTER) < 0.01;
+        const candidates = isDivider ? [flip, -flip] : [wx < CENTER ? 1 : -1];
+        for (const side of candidates) {
+          const cx = wx + side * (WALL_SPINNER_SIZE + WALL_SPINNER_GAP);
+          if (blocked(cx, wy, e)) continue;
+          if (isDivider) flip = -side;
+          // 벽 쪽 팔이 위로 올라가도록 돌린다(양수=시계 방향, 벽이 왼쪽이면 왼쪽 팔이 올라감). 아래로 내려가면 구슬이 팔과 벽 사이에 끼어 으깨진다
+          spinners.push(windmill(cx, wy, WALL_SPINNER_SIZE, side * 2.4));
+          break;
+        }
       }
     }
   }
-  return [...entities, ...guards];
+  return [...entities, ...spinners];
 }
 
 export function stageOf(title: string, goalY: number, entities: MapEntity[], adBoards: AdBoard[]): StageDef {
-  return { title, goalY, zoomY: goalY - 4.25, adBoards, entities: addWallGuards(entities) };
+  return { title, goalY, zoomY: goalY - 4.25, adBoards, entities: addWallSpinners(entities) };
 }
