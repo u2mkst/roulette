@@ -14,6 +14,8 @@ export type StageDef = {
   goalY: number;
   zoomY: number;
   adBoards?: AdBoard[];
+  /** 두 줄로 갈라져 내려가는 구간의 시작 y. 벽 바람개비는 이 아래에만 있고, 벽 타기 검수도 이 아래만 본다 */
+  forkY?: number;
 };
 
 export const stages: StageDef[] = kstStages;

@@ -131,6 +131,9 @@ export interface ForkOptions {
 
 export class Builder {
   entities: MapEntity[] = [];
+  adBoards: AdBoard[] = [];
+  /** 이 y 아래의 벽에만 바람개비를 붙인다 (fork 가 정한다) */
+  spinFrom = Infinity;
 
   add(...e: MapEntity[]) {
     this.entities.push(...e);
@@ -288,6 +291,11 @@ export class Builder {
     }
     // 바닥 직전의 큰 발사대: 마지막에 한 번 더 크게 튕겨 순서가 뒤집힌다
     this.add(trampoline(fastX(17.25), mergeTop - 3.4, 1.3, 0.22 * dir, 1.0));
+    // 합류 깔때기 입구의 큰 스피너와 그 아래 광고판: 두 길의 구슬이 여기서 한데 섞여 마지막 역전이 일어난다
+    this.add(windmill(CENTER, mergeTop + 1.0, 1.5, 2.4));
+    this.adBoards.push({ x: CENTER, y: mergeTop + 3.3, w: 6, h: 1.5 });
+    // 벽 바람개비는 갈림길 구간(두 줄로 내려가는 곳)에만 놓는다
+    this.spinFrom = g;
     return goalY;
   }
 }
@@ -295,7 +303,7 @@ export class Builder {
 /** 벽 바람개비: 크기(팔 길이)와 간격. 팔 끝이 벽에 딱 닿도록 붙인다(틈이 0.35 정도면 구슬이 팔과 벽 사이에 끼어 으깨진다) */
 const WALL_SPINNER_SIZE = 1.0;
 const WALL_SPINNER_GAP = 0;
-const WALL_SPINNER_SPACING = 2.6;
+const WALL_SPINNER_SPACING = 2.2;
 /** 바람개비 팔이 다른 장애물과 이 거리보다 가까우면 구슬이 끼므로 놓지 않는다 */
 const WALL_SPINNER_CLEARANCE = 0.4;
 
@@ -339,7 +347,7 @@ function surfaceDistance(e: MapEntity, x: number, y: number, skip?: MapEntity): 
  *  - 벽이 통로 중심(x 13)의 왼쪽이면 오른쪽에, 오른쪽이면 왼쪽에 놓고, 중심의 칸막이는 좌우로 번갈아 놓는다.
  *  - 다른 장애물과 가까운 자리는 건너뛴다.
  */
-export function addWallSpinners(entities: MapEntity[]): MapEntity[] {
+export function addWallSpinners(entities: MapEntity[], fromY = -Infinity): MapEntity[] {
   const spinners: MapEntity[] = [];
   const blocked = (x: number, y: number, wall: MapEntity) =>
     entities.some((e) => surfaceDistance(e, x, y, wall) < WALL_SPINNER_SIZE + WALL_SPINNER_CLEARANCE) ||
@@ -359,8 +367,7 @@ export function addWallSpinners(entities: MapEntity[]): MapEntity[] {
       for (let d = 2; d <= len - 2; d += WALL_SPINNER_SPACING) {
         const wx = x1 + (dx * d) / len;
         const wy = y1 + (dy * d) / len;
-        // 구슬이 태어나는 맨 위쪽은 비워 둔다. 위로 튕겨 올랐다 떨어지는 구슬을 위해 약간 위(y -12)부터 놓는다
-        if (wy < -12) continue;
+        if (wy < fromY) continue;
         // 통로 가운데의 칸막이는 양쪽이 모두 레인이라 좌우를 번갈아 놓되, 한쪽이 선반 등에 막히면 반대쪽에 놓는다
         const isDivider = Math.abs(wx - CENTER) < 0.01;
         const candidates = isDivider ? [flip, -flip] : [wx < CENTER ? 1 : -1];
@@ -378,6 +385,13 @@ export function addWallSpinners(entities: MapEntity[]): MapEntity[] {
   return [...entities, ...spinners];
 }
 
-export function stageOf(title: string, goalY: number, entities: MapEntity[], adBoards: AdBoard[]): StageDef {
-  return { title, goalY, zoomY: goalY - 4.25, adBoards, entities: addWallSpinners(entities) };
+export function stageOf(title: string, goalY: number, b: Builder, adBoards: AdBoard[]): StageDef {
+  return {
+    title,
+    goalY,
+    zoomY: goalY - 4.25,
+    adBoards: [...adBoards, ...b.adBoards],
+    forkY: b.spinFrom,
+    entities: addWallSpinners(b.entities, b.spinFrom),
+  };
 }

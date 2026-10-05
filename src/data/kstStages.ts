@@ -56,7 +56,7 @@ function kstMixer(): StageDef {
     slowKit: ['windmill', 'bubbles', 'trampoline', 'K', 'windmill'],
     fastPads: 3,
   });
-  return stageOf('KST Stage', goalY, b.entities, [{ x: CENTER, y: pegEnd + 0.6, w: 6, h: 1.5 }]);
+  return stageOf('KST Stage', goalY, b, [{ x: CENTER, y: pegEnd + 0.6, w: 6, h: 1.5 }]);
 }
 
 /* ───────── 2. KST 핀볼: 넓게 열린 핀볼판 ───────── */
@@ -112,7 +112,7 @@ function kstPinball(): StageDef {
     slowKit: ['trampoline', 'windmill', 'bubbles', 'K', 'trampoline'],
     fastPads: 3,
   });
-  return stageOf('KST Pinball', goalY, b.entities, [{ x: CENTER, y: 26.6, w: 7, h: 1.75 }]);
+  return stageOf('KST Pinball', goalY, b, [{ x: CENTER, y: 26.6, w: 7, h: 1.75 }]);
 }
 
 /* ───────── 3. KST 바운스: 트램펄린 계단 ───────── */
@@ -174,7 +174,7 @@ function kstBounce(): StageDef {
     slowKit: ['trampoline', 'bubbles', 'windmill', 'K', 'bubbles', 'trampoline'],
     fastPads: 3,
   });
-  return stageOf('KST Bounce', goalY, b.entities, [{ x: CENTER, y: 10.8, w: 6, h: 1.5 }]);
+  return stageOf('KST Bounce', goalY, b, [{ x: CENTER, y: 10.8, w: 6, h: 1.5 }]);
 }
 
 /* ───────── 4. KST 휠: 룰렛 휠 그릇 ───────── */
@@ -226,7 +226,7 @@ function kstWheel(): StageDef {
     slowKit: ['windmill', 'K', 'bubbles', 'trampoline', 'windmill'],
     fastPads: 3,
   });
-  return stageOf('KST Wheel', goalY, b.entities, [{ x: CENTER, y: 8.2, w: 6, h: 1.5 }]);
+  return stageOf('KST Wheel', goalY, b, [{ x: CENTER, y: 8.2, w: 6, h: 1.5 }]);
 }
 
 export const kstStages: StageDef[] = [kstMixer(), kstPinball(), kstBounce(), kstWheel()];

@@ -235,7 +235,7 @@ async function run(mapIdx: number, n: number, seed: number) {
       prevY[id] = q.y;
       // 초속 3 이상으로 내려가는 구간만 센다. 구슬 더미 위에서 비비적대는 미세한 움직임은 제외하고, 위로 튕기면 연속 구간을 끊는다
       if (dy < -0.03) hugRun[id] = 0;
-      if (dy > 0.03) {
+      if (dy > 0.03 && q.y >= (stage.forkY ?? -Infinity)) {
         fallTotal += dy;
         let near = false;
         for (const w of walls) {
