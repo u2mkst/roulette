@@ -12,6 +12,11 @@ yarn install
 yarn dev
 ```
 
+## Map testing
+```sh
+yarn probe all 30 1,2,3   # physics-only check: stuck marbles, obstacle usage, fork balance
+```
+
 ## Build
 ```sh
 yarn build

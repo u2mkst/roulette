@@ -14,7 +14,7 @@ export const Translations = {
     'KST Stage': 'KST Stage',
     'KST Pinball': 'KST Pinball',
     'KST Bounce': 'KST Bounce',
-    'KST Circuit': 'KST Circuit',
+    'KST Wheel': 'KST Wheel',
     'Shake!': 'Shake!',
     'Input names separated by commas or line feed here': 'Input names separated by commas or line feed here',
     'This program is freeware and may be used freely anywhere, including in broadcasts and videos.':
@@ -37,7 +37,7 @@ export const Translations = {
     'KST Stage': 'KST 스테이지',
     'KST Pinball': 'KST 핀볼',
     'KST Bounce': 'KST 바운스',
-    'KST Circuit': 'KST 서킷',
+    'KST Wheel': 'KST 휠',
     'Shake!': '흔들기!',
     'Input names separated by commas or line feed here': '이름들을 쉼표나 엔터로 구분해서 넣어주세요',
     'This program is freeware and may be used freely anywhere, including in broadcasts and videos.':
