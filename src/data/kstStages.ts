@@ -122,7 +122,7 @@ function kstBounce(): StageDef {
   const R = 21;
   const STEPS = 5;
   const FIRST = 15;
-  const GAP_Y = 9.5;
+  const GAP_Y = 8.5;
   const forkTop = FIRST + STEPS * GAP_Y + 4;
   b.walls(
     [

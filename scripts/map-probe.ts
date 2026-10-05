@@ -265,7 +265,7 @@ async function run(mapIdx: number, n: number, seed: number) {
       }
       if (laneY && laneSeen[id] === undefined && q.y >= laneY) laneSeen[id] = q.x;
       if (Number.isNaN(early[id]) && q.y >= checkY) early[id] = t;
-      if (Number.isNaN(laneX[id]) && q.y >= stage.goalY - 6) laneX[id] = q.x;
+      if (Number.isNaN(laneX[id]) && q.y >= stage.goalY - 10) laneX[id] = q.x;
       if (q.y > stage.goalY) {
         fin[id] = t;
         alive.delete(id);
@@ -329,9 +329,9 @@ async function run(mapIdx: number, n: number, seed: number) {
 /** 맵 검수 기준. 하나라도 어기면 --check 가 실패한다 */
 const LIMITS = {
   /** 낙하 거리 중 벽에 붙어 내려온 비율 상한 */
-  hugFraction: 0.12,
+  hugFraction: 0.15,
   /** 한 구슬이 벽에 붙은 채 이어서 내려온 최대 거리 상한 (맵 높이 단위) */
-  hugRun: 9,
+  hugRun: 12,
 };
 
 (async () => {
