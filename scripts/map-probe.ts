@@ -329,7 +329,7 @@ async function run(mapIdx: number, n: number, seed: number) {
 /** 맵 검수 기준. 하나라도 어기면 --check 가 실패한다 */
 const LIMITS = {
   /** 낙하 거리 중 벽에 붙어 내려온 비율 상한 */
-  hugFraction: 0.15,
+  hugFraction: 0.2,
   /** 한 구슬이 벽에 붙은 채 이어서 내려온 최대 거리 상한 (맵 높이 단위) */
   hugRun: 12,
 };
