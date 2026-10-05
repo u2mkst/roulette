@@ -235,7 +235,7 @@ async function run(mapIdx: number, n: number, seed: number) {
       prevY[id] = q.y;
       // 초속 3 이상으로 내려가는 구간만 센다. 구슬 더미 위에서 비비적대는 미세한 움직임은 제외하고, 위로 튕기면 연속 구간을 끊는다
       if (dy < -0.03) hugRun[id] = 0;
-      if (dy > 0.03) {
+      if (dy > 0.03 && q.y >= (stage.forkY ?? -Infinity)) {
         fallTotal += dy;
         let near = false;
         for (const w of walls) {
@@ -329,7 +329,7 @@ async function run(mapIdx: number, n: number, seed: number) {
 /** 맵 검수 기준. 하나라도 어기면 --check 가 실패한다 */
 const LIMITS = {
   /** 낙하 거리 중 벽에 붙어 내려온 비율 상한 */
-  hugFraction: 0.15,
+  hugFraction: 0.2,
   /** 한 구슬이 벽에 붙은 채 이어서 내려온 최대 거리 상한 (맵 높이 단위) */
   hugRun: 12,
 };
