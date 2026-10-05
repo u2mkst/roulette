@@ -14,7 +14,8 @@ yarn dev
 
 ## Map testing
 ```sh
-yarn probe all 30 1,2,3   # physics-only check: stuck marbles, obstacle usage, fork balance
+yarn check:maps           # quick map check (runs automatically before `yarn build`)
+yarn probe all 30 1,2,3   # details: stuck marbles, obstacle usage, wall hugging, fork balance
 ```
 
 ## Build

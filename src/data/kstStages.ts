@@ -53,7 +53,7 @@ function kstMixer(): StageDef {
   const goalY = b.fork(top, {
     diverter: (gate) => [spinningK(CENTER, gate + 2.6, 1.7, 2.2)],
     slowSide: 'left',
-    slowKit: ['windmill', 'bubbles', 'bumper', 'K', 'trampoline'],
+    slowKit: ['windmill', 'bubbles', 'trampoline', 'K', 'windmill'],
     fastPads: 3,
   });
   return stageOf('KST Stage', goalY, b.entities, [{ x: CENTER, y: pegEnd + 0.6, w: 6, h: 1.5 }]);
@@ -109,7 +109,7 @@ function kstPinball(): StageDef {
   const goalY = b.fork(FORK_TOP, {
     diverter: (gate) => [bumper(CENTER, gate + 2.8, 0.8), bumper(10.9, gate + 3.6), bumper(15.1, gate + 3.6)],
     slowSide: 'right',
-    slowKit: ['bumper', 'windmill', 'bubbles', 'trampoline', 'K'],
+    slowKit: ['trampoline', 'windmill', 'bubbles', 'K', 'trampoline'],
     fastPads: 3,
   });
   return stageOf('KST Pinball', goalY, b.entities, [{ x: CENTER, y: 26.6, w: 7, h: 1.75 }]);
@@ -120,7 +120,7 @@ function kstBounce(): StageDef {
   const b = new Builder();
   const L = 5;
   const R = 21;
-  const STEPS = 7;
+  const STEPS = 5;
   const FIRST = 15;
   const GAP_Y = 9.5;
   const forkTop = FIRST + STEPS * GAP_Y + 4;
@@ -171,7 +171,7 @@ function kstBounce(): StageDef {
   const goalY = b.fork(forkTop, {
     diverter: (gate) => [trampoline(CENTER, gate + 2.2, 1.5, 0.32), trampoline(CENTER, gate + 4.6, 1.4, -0.32), bubble(CENTER, gate + 6.2)],
     slowSide: 'right',
-    slowKit: ['trampoline', 'bubbles', 'windmill', 'bumper', 'bubbles', 'K'],
+    slowKit: ['trampoline', 'bubbles', 'windmill', 'K', 'bubbles', 'trampoline'],
     fastPads: 3,
   });
   return stageOf('KST Bounce', goalY, b.entities, [{ x: CENTER, y: 10.8, w: 6, h: 1.5 }]);
@@ -198,10 +198,10 @@ function kstWheel(): StageDef {
     [[8, -300], [8, 6], [4, 12], [4, C1], ...arc(CENTER, C1, R1, 180, 102)],
     [...arc(CENTER, C1, R1, 78, 0), [22, C1], [22, 12], [18, 6], [18, -300]]
   );
-  // 그릇 2: 중심 (13, 47), 반지름 6, 바닥 구멍 폭 약 2.5
+  // 그릇 2: 중심 (13, 47), 반지름 6, 바닥 구멍 폭 약 2.9
   const R2 = 6;
   const C2 = 47;
-  b.walls([...arc(CENTER, C2, R2, 180, 98)], [...arc(CENTER, C2, R2, 82, 0)]);
+  b.walls([...arc(CENTER, C2, R2, 180, 104)], [...arc(CENTER, C2, R2, 76, 0)]);
   // 바깥 벽: 그릇 1 에서 튕겨 나온 구슬이 그릇 2 로 모이고, 그릇 2 에서 나온 구슬은 갈림길 깔때기로 모인다
   b.walls(
     [[4, C1], [4, 35], [7, 39], [7, C2], [7, C2 + R2 + 3], [8, C2 + R2 + 5]],
@@ -223,7 +223,7 @@ function kstWheel(): StageDef {
   const goalY = b.fork(forkTop, {
     diverter: (gate) => [windmill(CENTER, gate + 3, 2.2, 2)],
     slowSide: 'left',
-    slowKit: ['windmill', 'pins', 'bubbles', 'K', 'bumper'],
+    slowKit: ['windmill', 'K', 'bubbles', 'trampoline', 'windmill'],
     fastPads: 3,
   });
   return stageOf('KST Wheel', goalY, b.entities, [{ x: CENTER, y: 8.2, w: 6, h: 1.5 }]);

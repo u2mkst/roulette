@@ -14,6 +14,9 @@ export interface IPhysics {
 
   shakeMarble(id: number): void;
 
+  /** 진전이 없는 구슬을 아래쪽으로 한 번 밀어 준다 */
+  nudgeMarbleDown(id: number): void;
+
   removeMarble(id: number): void;
 
   getMarblePosition(id: number): { x: number; y: number; angle: number };

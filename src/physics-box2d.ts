@@ -122,6 +122,13 @@ export class Box2dPhysics implements IPhysics {
     }
   }
 
+  nudgeMarbleDown(id: number): void {
+    const body = this.marbleMap[id];
+    if (body) {
+      body.ApplyLinearImpulseToCenter(new this.Box2D.b2Vec2(Math.random() * 4 - 2, 6), true);
+    }
+  }
+
   removeMarble(id: number): void {
     const marble = this.marbleMap[id];
     if (marble) {
