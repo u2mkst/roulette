@@ -1,4 +1,4 @@
-import { Skills, STUCK_DELAY, Themes } from './data/constants';
+import { PROGRESS_DELAY, PROGRESS_STEP, Skills, STUCK_DELAY, Themes } from './data/constants';
 import type { IPhysics } from './IPhysics';
 import options from './options';
 import type { ColorTheme } from './types/ColorTheme';
@@ -22,6 +22,8 @@ export class Marble {
   private _coolTime = 5000;
   private _maxCoolTime = 5000;
   private _stuckTime = 0;
+  private _bestY = -Infinity;
+  private _noProgressTime = 0;
   private lastPosition: VectorLike = { x: 0, y: 0 };
   private theme: ColorTheme = Themes.dark;
 
@@ -92,6 +94,20 @@ export class Marble {
       }
     } else {
       this._stuckTime = 0;
+    }
+    // 진행 감시: 움직이고는 있지만 계속 제자리를 맴도는 구슬(무한 바운스 등)을 아래로 밀어 빼낸다
+    if (this.isActive) {
+      const y = this.position.y;
+      if (y > this._bestY + PROGRESS_STEP) {
+        this._bestY = y;
+        this._noProgressTime = 0;
+      } else {
+        this._noProgressTime += deltaTime;
+        if (this._noProgressTime > PROGRESS_DELAY) {
+          this.physics.nudgeMarbleDown(this.id);
+          this._noProgressTime = 0;
+        }
+      }
     }
     this.lastPosition = { x: this.position.x, y: this.position.y };
 

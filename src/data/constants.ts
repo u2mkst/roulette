@@ -5,6 +5,10 @@ export const canvasWidth = 1600;
 export const canvasHeight = 900;
 export const zoomThreshold = 5;
 export const STUCK_DELAY = 5000;
+/** 구슬이 이 시간(ms) 동안 더 깊이 내려가지 못하면 아래로 밀어 준다. 무한 바운스 같은 예외 상황을 끊는 안전장치 */
+export const PROGRESS_DELAY = 12000;
+/** 이만큼(맵 단위) 더 내려가야 진전으로 본다 */
+export const PROGRESS_STEP = 0.5;
 export const winnerAreaHeight = 168;
 
 export enum Skills {
